@@ -13,6 +13,7 @@ import 'package:PiliPlus/pages/dynamics/controller.dart';
 import 'package:PiliPlus/pages/home/controller.dart';
 import 'package:PiliPlus/pages/mine/view.dart';
 import 'package:PiliPlus/services/account_service.dart';
+import 'package:PiliPlus/utils/device_utils.dart';
 import 'package:PiliPlus/utils/extension/get_ext.dart';
 import 'package:PiliPlus/utils/extension/iterable_ext.dart';
 import 'package:PiliPlus/utils/feed_back.dart';
@@ -87,7 +88,10 @@ class MainController extends GetxController
         : PageController(initialPage: selectedIndex.value);
 
     hideBottomBar =
-        !useSideBar && navigationBars.length > 1 && Pref.hideBottomBar;
+        !DeviceUtils.isIPhoneDuo &&
+        !useSideBar &&
+        navigationBars.length > 1 &&
+        Pref.hideBottomBar;
     if (hideBottomBar) {
       switch (barHideType) {
         case .instant:

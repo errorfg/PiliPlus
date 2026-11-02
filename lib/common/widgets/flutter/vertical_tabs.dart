@@ -8,6 +8,7 @@ import 'dart:math' as math;
 import 'dart:ui' show SemanticsRole, lerpDouble;
 
 import 'package:PiliPlus/pages/main/controller.dart';
+import 'package:PiliPlus/utils/device_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart' show DragStartBehavior;
 import 'package:flutter/rendering.dart';
@@ -1654,7 +1655,8 @@ class _VerticalTabBarState extends State<VerticalTabBar> {
       tabCenter +
           paddingTop -
           viewportWidth / 2.0 +
-          (_mainCtr.useBottomNav &&
+          (!DeviceUtils.isIPhoneDuo &&
+                  _mainCtr.useBottomNav &&
                   switch (_mainCtr.barHideType) {
                     .instant => _mainCtr.showBottomBar?.value ?? true,
                     .sync => (_mainCtr.barOffset?.value ?? 0) == 0,
