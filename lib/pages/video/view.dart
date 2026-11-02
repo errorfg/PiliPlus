@@ -456,10 +456,12 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final viewPadding = MediaQuery.viewPaddingOf(context);
+    _stripWidth = verticalBarStripWidth(viewPadding);
     if (videoDetailController.removeSafeArea) {
       padding = .zero;
     } else {
-      padding = MediaQuery.viewPaddingOf(context);
+      padding = viewPadding.copyWith(right: viewPadding.right - _stripWidth);
     }
 
     final size = MediaQuery.sizeOf(context);
@@ -802,7 +804,7 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
               body: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  buildTabBar(),
+                  buildTabBar(endInset: _tabBarEndInset),
                   Expanded(
                     child: tabBarView(
                       controller: videoDetailController.tabCtr,
@@ -865,7 +867,7 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
                     key: videoDetailController.childKey,
                     body: Column(
                       children: [
-                        buildTabBar(showIntro: false),
+                        buildTabBar(showIntro: false, endInset: _tabBarEndInset),
                         Expanded(
                           child: tabBarView(
                             controller: videoDetailController.tabCtr,
@@ -892,7 +894,10 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
   }
 
   Widget _childWhenDisabledLandscapeInner(bool isFullScreen) {
-    final width = landscapeVideoWidth(maxWidth - padding.horizontal, maxHeight);
+    final width = landscapeVideoWidth(
+      maxWidth - padding.horizontal - _stripWidth,
+      maxHeight,
+    );
     final videoWidth = isFullScreen ? maxWidth : width;
     final double height = width / Style.aspectRatio16x9;
     final videoHeight = isFullScreen
@@ -949,6 +954,7 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
                     showIntro: videoDetailController.isFileSource
                         ? true
                         : showIntro,
+                    endInset: _tabBarEndInset,
                   ),
                   Expanded(
                     child: tabBarView(
@@ -1254,6 +1260,12 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
   late double maxHeight;
   bool isWindowMode = false;
   late EdgeInsets padding;
+  late double _stripWidth;
+
+  /// Keeps the buttons of a tab bar at the top of the page clear of the status
+  /// bar, which the setting to remove the safe area hides.
+  double get _tabBarEndInset =>
+      videoDetailController.removeSafeArea ? 0 : _stripWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -1295,6 +1307,7 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
     String? introText,
     bool showIntro = true,
     VoidCallback? onTap,
+    double endInset = 0,
   }) {
     final tabs = [
       if (showIntro)
@@ -1439,7 +1452,7 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
                 },
               ),
             ),
-            const SizedBox(width: 14),
+            SizedBox(width: max(14, endInset)),
           ],
         ),
       ),

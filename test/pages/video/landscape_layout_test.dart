@@ -5,6 +5,8 @@ import 'package:PiliPlus/pages/video/landscape_layout.dart';
 import 'package:PiliPlus/utils/storage.dart';
 import 'package:PiliPlus/utils/storage_key.dart';
 import 'package:PiliPlus/utils/storage_pref.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart' show EdgeInsets;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
 
@@ -67,14 +69,46 @@ void main() {
     });
   });
 
-  test('the column keeps its width beside an inset at the side', () {
-    const availableWidth = 951.0 - 84;
+  test('over the strip, the player keeps its size and the column widens', () {
+    const stripWidth = 84.0;
 
-    final width = landscapeVideoWidth(availableWidth, 669);
+    final width = landscapeVideoWidth(951.0 - stripWidth, 669);
 
-    expect(availableWidth - width, 280);
+    expect(951.0 - stripWidth - width, 280);
+    expect(951.0 - width, 364);
     // Room left below the player for what goes under it.
     expect(669 - width * 9 / 16, greaterThan(300));
+  });
+
+  group('the strip for vertical bars', () {
+    tearDown(() => debugDefaultTargetPlatformOverride = null);
+
+    test('is an inset on the right alone, on iOS', () {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+
+      expect(verticalBarStripWidth(const EdgeInsets.only(right: 84)), 84);
+    });
+
+    test('is not the inset an iPhone has on both sides in landscape', () {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+
+      expect(
+        verticalBarStripWidth(const EdgeInsets.only(left: 62, right: 62)),
+        0,
+      );
+    });
+
+    test('stays clear where it is on the left, with the camera in it', () {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+
+      expect(verticalBarStripWidth(const EdgeInsets.only(left: 84)), 0);
+    });
+
+    test('is not a camera cutout on Android', () {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+
+      expect(verticalBarStripWidth(const EdgeInsets.only(right: 40)), 0);
+    });
   });
 
   test('a window with no inset keeps its proportions', () {
