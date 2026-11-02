@@ -107,6 +107,7 @@ void main() async {
     _initDownPath(),
     _initTmpPath(),
     CacheManager.ensureInitialized(),
+    DeviceUtils.detectIPhoneDuo(),
     ?FontUtils.init(),
   ]);
   Get

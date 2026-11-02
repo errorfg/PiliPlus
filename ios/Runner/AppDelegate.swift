@@ -13,6 +13,9 @@ import UIKit
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "NativeGlass") {
+      registrar.register(NativeGlassFactory(), withId: "piliplus/native_glass")
+    }
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "PipPlugin") {
       PipPlugin.register(with: registrar)
     }

@@ -9,10 +9,12 @@ import 'package:PiliPlus/common/widgets/route_aware_mixin.dart';
 import 'package:PiliPlus/models/common/nav_bar_config.dart';
 import 'package:PiliPlus/pages/home/view.dart';
 import 'package:PiliPlus/pages/main/controller.dart';
+import 'package:PiliPlus/pages/main/iphone_duo_layout.dart';
 import 'package:PiliPlus/utils/android/bindings.g.dart';
 import 'package:PiliPlus/utils/app_scheme.dart';
 import 'package:PiliPlus/utils/desktop/tray_controller.dart';
 import 'package:PiliPlus/utils/desktop/window_controller.dart';
+import 'package:PiliPlus/utils/device_utils.dart';
 import 'package:PiliPlus/utils/extension/context_ext.dart';
 import 'package:PiliPlus/utils/extension/size_ext.dart';
 import 'package:PiliPlus/utils/extension/theme_ext.dart';
@@ -334,6 +336,11 @@ class _MainAppState extends PopScopeState<MainApp>
       );
     }
 
+    if (DeviceUtils.isIPhoneDuo) {
+      child = Material(child: _buildIPhoneDuoLayout(child));
+      return _buildSystemUiStyle(child);
+    }
+
     Widget? sideBar;
     Widget? bottomNav;
     final EdgeInsets padding;
@@ -370,20 +377,54 @@ class _MainAppState extends PopScopeState<MainApp>
     );
 
     if (PlatformUtils.isMobile) {
-      return AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarBrightness: _colorScheme.brightness,
-          statusBarIconBrightness: _colorScheme.brightness.reverse,
-          systemStatusBarContrastEnforced: false,
-          systemNavigationBarColor: Colors.transparent,
-          systemNavigationBarIconBrightness: _colorScheme.brightness.reverse,
-        ),
-        child: child,
-      );
+      return _buildSystemUiStyle(child);
     }
 
     return child;
+  }
+
+  Widget _buildSystemUiStyle(Widget child) {
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarBrightness: _colorScheme.brightness,
+        statusBarIconBrightness: _colorScheme.brightness.reverse,
+        systemStatusBarContrastEnforced: false,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: _colorScheme.brightness.reverse,
+      ),
+      child: child,
+    );
+  }
+
+  Widget _buildIPhoneDuoLayout(Widget body) {
+    return Obx(
+      () => IPhoneDuoLayout(
+        selectedIndex: _mainController.selectedIndex.value,
+        onDestinationSelected: _mainController.setIndex,
+        destinations: _mainController.navigationBars
+            .map(
+              (e) => IPhoneDuoDestination(
+                label: e.label,
+                icon: _buildIcon(type: e),
+                selectedIcon: _buildIcon(type: e, selected: true),
+              ),
+            )
+            .toList(),
+        // In portrait the home page has them in its own row.
+        actions: _mainController.useBottomNav
+            ? const []
+            : [
+                userAvatar(
+                  colorScheme: _colorScheme,
+                  mainController: _mainController,
+                ),
+                msgBadge(_mainController),
+                _searchButton(),
+              ],
+        body: body,
+      ),
+    );
   }
 
   Widget _buildIcon({required NavigationBarType type, bool selected = false}) {
@@ -411,15 +452,19 @@ class _MainAppState extends PopScopeState<MainApp>
         userAvatar(colorScheme: _colorScheme, mainController: _mainController),
         const SizedBox(height: 8),
         msgBadge(_mainController),
-        IconButton(
-          tooltip: '搜索',
-          icon: const Icon(
-            Icons.search_outlined,
-            semanticLabel: '搜索',
-          ),
-          onPressed: () => Get.toNamed('/search'),
-        ),
+        _searchButton(),
       ],
+    );
+  }
+
+  Widget _searchButton() {
+    return IconButton(
+      tooltip: '搜索',
+      icon: const Icon(
+        Icons.search_outlined,
+        semanticLabel: '搜索',
+      ),
+      onPressed: () => Get.toNamed('/search'),
     );
   }
 }
