@@ -625,15 +625,12 @@ abstract final class Pref {
   static bool get optTabletNav =>
       _setting.get(SettingBoxKey.optTabletNav, defaultValue: true);
 
-  static bool get horizontalScreen {
-    bool? horizontalScreen = _setting.get(SettingBoxKey.horizontalScreen);
-    if (horizontalScreen == null) {
-      final isTablet = DeviceUtils.isTablet;
-      _setting.put(SettingBoxKey.horizontalScreen, isTablet);
-      return isTablet;
-    }
-    return horizontalScreen;
-  }
+  /// Follows the window until chosen in the settings: a foldable first opened
+  /// on its small display would otherwise stay in the phone layouts unfolded.
+  static bool get horizontalScreen => _setting.get(
+    SettingBoxKey.horizontalScreen,
+    defaultValue: DeviceUtils.isTablet,
+  );
 
   static String get banWordForDyn =>
       _setting.get(SettingBoxKey.banWordForDyn, defaultValue: '');

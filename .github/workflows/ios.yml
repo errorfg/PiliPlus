@@ -35,7 +35,7 @@ jobs:
         run: lib/scripts/patch.ps1 iOS
 
       - name: Test iPhone Duo layout
-        run: flutter test test/pages/main/iphone_duo_layout_test.dart
+        run: flutter test test/pages/main/iphone_duo_layout_test.dart test/pages/video/landscape_layout_test.dart
 
       - name: Build iOS
         run: |
