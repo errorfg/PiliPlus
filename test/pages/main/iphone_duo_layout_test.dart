@@ -25,15 +25,25 @@ final _lastTab = find.byKey(const ValueKey('iPhoneDuoTab2'));
 
 void main() {
   final nativeViews = <String>[];
+  final nativeParams = <Map>[];
   final selected = <int>[];
 
   setUp(() {
     nativeViews.clear();
+    nativeParams.clear();
     selected.clear();
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(SystemChannels.platform_views, (call) async {
           if (call.method == 'create') {
             nativeViews.add((call.arguments as Map)['viewType'] as String);
+            nativeParams.add(
+              const StandardMessageCodec().decodeMessage(
+                    ByteData.sublistView(
+                      (call.arguments as Map)['params'] as Uint8List,
+                    ),
+                  )
+                  as Map,
+            );
           }
           return null;
         });
@@ -161,6 +171,20 @@ void main() {
     await pump(tester, _innerFlat, withActions: true);
 
     expect(nativeViews, ['piliplus/native_glass', 'piliplus/native_glass']);
+  });
+
+  testWidgets('the native view takes in what the glass draws past its bounds', (
+    tester,
+  ) async {
+    await pump(tester, _innerFlat);
+
+    // What is above a platform view covers it only as far as the view's frame.
+    final view = tester.getRect(find.byType(UiKitView));
+    const margin = 24.0;
+    expect(view.width, 48 + margin * 2);
+    expect(view.center.dx, 951 - 48);
+    expect(view.height, 3 * 50 + 12 + margin * 2);
+    expect(nativeParams.single['margin'], margin);
   });
 
   testWidgets('a tab selects its destination', (tester) async {

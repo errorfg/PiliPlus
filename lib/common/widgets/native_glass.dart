@@ -11,19 +11,37 @@ class NativeGlass extends StatelessWidget {
 
   final double? cornerRadius;
 
+  /// Glass draws past its bounds, and what is above a platform view covers it
+  /// only as far as the view's frame: its edges would show through a page
+  /// moving over it. So the view is this much larger than the glass inside.
+  static const double _margin = 24;
+
   @override
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     return IgnorePointer(
-      child: UiKitView(
-        // The creation params are all the view is told.
-        key: ValueKey(brightness),
-        viewType: 'piliplus/native_glass',
-        creationParams: <String, Object?>{
-          'cornerRadius': cornerRadius,
-          'dark': brightness == .dark,
-        },
-        creationParamsCodec: const StandardMessageCodec(),
+      child: Stack(
+        clipBehavior: .none,
+        fit: .expand,
+        children: [
+          Positioned.fill(
+            left: -_margin,
+            top: -_margin,
+            right: -_margin,
+            bottom: -_margin,
+            child: UiKitView(
+              // The creation params are all the view is told.
+              key: ValueKey(brightness),
+              viewType: 'piliplus/native_glass',
+              creationParams: <String, Object?>{
+                'cornerRadius': cornerRadius,
+                'dark': brightness == .dark,
+                'margin': _margin,
+              },
+              creationParamsCodec: const StandardMessageCodec(),
+            ),
+          ),
+        ],
       ),
     );
   }
