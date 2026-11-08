@@ -32,6 +32,8 @@ abstract final class IOSPipHelper {
       case 'onStateChanged':
         final args = call.arguments as Map;
         isActive = args['active'] as bool;
+        // PiP may start after the video track was dropped for background.
+        if (isActive) PlPlayerController.instance?.restoreVideoFromBackground();
         final isResumed =
             WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
         if (args['error'] != null && isResumed) {

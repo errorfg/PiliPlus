@@ -336,6 +336,13 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // Keep playing in the PiP window.
     if (Platform.isIOS && IOSPipHelper.isActive) return;
+    if (Platform.isIOS) {
+      if (state == .paused) {
+        plPlayerController.dropVideoInBackground();
+      } else if (state == .resumed) {
+        plPlayerController.restoreVideoFromBackground();
+      }
+    }
     if (!plPlayerController.continuePlayInBackground.value) {
       if (const <AppLifecycleState>[.paused, .detached].contains(state)) {
         final player = plPlayerController.videoPlayerController;

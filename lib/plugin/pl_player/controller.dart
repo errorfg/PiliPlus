@@ -1243,6 +1243,27 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
     }
   }
 
+  /// iOS invalidates a backgrounded app's VideoToolbox session; mpv then
+  /// decodes the rest of the file in software. The video track is dropped
+  /// while in background and selected again on return, so that the decoder
+  /// is created in the foreground. The global `vid` also covers files opened
+  /// in background.
+  bool _videoDroppedInBackground = false;
+
+  void dropVideoInBackground() {
+    if (_videoDroppedInBackground || onlyPlayAudio.value) return;
+    if (_videoPlayerController case final player?) {
+      _videoDroppedInBackground = true;
+      player.setProperty('vid', 'no');
+    }
+  }
+
+  void restoreVideoFromBackground() {
+    if (!_videoDroppedInBackground) return;
+    _videoDroppedInBackground = false;
+    _videoPlayerController?.setProperty('vid', 'auto');
+  }
+
   bool tripling = false;
 
   /// 隐藏控制条
