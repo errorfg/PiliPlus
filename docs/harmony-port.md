@@ -4,7 +4,7 @@
 
 ## 1. 原则
 
-- 基线是上游 PiliPlus（当前 2.2.1），鸿蒙改动放在 `feature/harmony`，叠在 `feature/iphone-duo` 之上。
+- 基线是上游 PiliPlus（当前 2.2.1）。2026-11-15 起鸿蒙与 iPhone Duo 的改动合在 fork 的 `main` 上（此前在 `feature/harmony`，叠在 `feature/iphone-duo` 之上）。
 - 本仓库同时出 iOS、安卓和鸿蒙的包。共用代码必须能用官方 Flutter 编译，鸿蒙专属的东西按平台隔离。
 - 其他人的鸿蒙移植只作参考：技术选型可以借鉴，设计按「怎样合理」来定，不以与它一致为目标。
 - 不移植短视频模式（用户决定）。包名 `com.errorfg.piliplus`。
@@ -66,7 +66,7 @@
 
 - 没有整体换成 `cnoim/media-kit`。上游用的是自己的 `native` 分支（结构已精简），整体替换会让播放器代码与上游分叉。
 - 移植的内容约 700 行：加载 `libmpv.so`、鸿蒙走 isolate 事件循环（没有 native event loop 的鸿蒙构建）、`OhosVideoController`、ArkTS 的纹理插件。
-- `libmpv.so` 用的是 2.1 那个仓库作者重新编译的二进制，没有自行从源码编译。
+- `libmpv.so` 起初用的是 2.1 那个仓库作者重新编译的二进制；为了 HDR 直出，后来改为自行从源码编译（见 3.12）。下面 1080p30 的解码实测是在原二进制上做的。
 - 实测（Mate XTs，1080p30）：H.264 与 HEVC 走 ohcodec 硬解、零拷贝、不丢帧；AV1 只有 dav1d 软解，处理器占用约为硬解的 3 倍。库里没有 VP9，也没有 AV1 硬解。
 - 因此鸿蒙的默认首选编码是 AVC、HEVC（其他平台是 AVC、AV1）。
 - AV1 没有硬解不是 libmpv 的取舍，而是这台设备没有 AV1 的硬件解码器。用系统接口 `OH_AVCodec_GetCapabilityByCategory` 在 Mate XTs（API 26）上查到的视频解码器（格式名取自系统导出的常量，AV1 是 `video/av1`，不是 `video/av01`）：
@@ -133,7 +133,7 @@
 - 这套机制本身工作正常（位置、控制栏、弹幕层都对），但画面偏色且很暗。原因在 libmpv：它的鸿蒙输出用 sRGB 的 Vulkan 交换链（10 位）渲染，再用 `OH_NativeWindow_SetColorSpace`、`SetMetadataValue` 给窗口打上 BT.2020 PQ 和 HDR10 元数据。渲染服务里看到的缓冲区：格式 RGBA_1010102、元数据类型 HDR10、静态元数据齐全、HDR 白点亮度 1.0，但色域字段仍是 sRGB，系统没有按 HDR 合成。`target-colorspace-hint=yes` 不改变交换链的选择（分叉里自带的 `set_color` 回调取代了 libplacebo 的色彩空间协商）；换 OpenGL 上下文则初始化失败。
 - 所以不能靠 libmpv 自己渲染 HDR。
 
-解决办法：让硬件解码器直接送显到这个图层，不经过 libmpv 的渲染。这是鸿蒙上播放 HDR 视频的常规做法，元数据由系统处理。
+解决办法：让硬件解码器直接送显到这个图层，不经过 libmpv 的渲染，元数据由系统处理。
 
 - cnoim 的 mpv 分叉里有现成的 `vo_ohcodec_embed`（提交 ec8b628「支持视频直通模式」，随后被 b1b1bc3 撤回，原先用的二进制对应撤回之后）。
 - 已从源码重新编译 libmpv：mpv 取 ec8b628，其余依赖、FFmpeg 配置、补丁与原二进制的配方（参考仓库 `tool/native_mpv/`）相同。核对过 FFmpeg 配置行与 mpv 的 meson 配置行一致，导出符号 16747 个完全相同，只多出 `ohcodec_embed`。构建目录、脚本和日志在本机构建目录的 `libmpv-build/`，原二进制留有备份。
@@ -214,7 +214,9 @@ HDR Vivid 的流（2026-11-14 实测，视频「华为HDRVIVID测试」，已登
 
 ## 8. 待验证
 
-需要登录或需要人手操作，尚未验证：
+用户已登录并确认正常的（2026-11-14 至 15）：小窗上的按钮、后台自动进入画中画、直播间画中画、亮度手势、4K 与 60 帧的播放、HDR 直出点亮、HDR 直出下的拖动、切画质、全屏、与普通视频互切、HDR 画中画（含上滑自动进入，进出不再缓冲）、HDR 小窗字幕。小窗里没有弹幕是用户认可的预期行为。
+
+下面的清单是 2026-11-14 写的，其中已被上一段覆盖的项不再是待验证项；其余仍未验证（用户说等出问题再单独处理）：
 
 - 登录本身（密码、短信、扫码、极验验证码的网页视图）。
 - 评论与私信的输入框（键盘高度、表情面板）。
