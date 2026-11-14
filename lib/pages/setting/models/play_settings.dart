@@ -42,7 +42,7 @@ List<SettingsModel> get playSettings => [
       title: '倾斜角度阈值',
       getSubtitle: () => '当前:「${Pref.angleDegrees}°」',
     ),
-  if (kDebugMode || Platform.isAndroid)
+  if (kDebugMode || Platform.isAndroid || PlatformUtils.isOhos)
     NormalModel(
       title: '音量均衡',
       leading: const Icon(Icons.multitrack_audio),

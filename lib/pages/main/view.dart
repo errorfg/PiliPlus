@@ -130,6 +130,8 @@ class _MainAppState extends PopScopeState<MainApp>
   static void _onBack() {
     if (Platform.isAndroid) {
       AndroidHelper.back();
+    } else if (PlatformUtils.isOhos) {
+      SystemNavigator.pop();
     }
   }
 

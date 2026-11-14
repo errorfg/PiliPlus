@@ -194,7 +194,7 @@ class _GalleryViewerState extends State<GalleryViewer>
       } else {
         _hideSystemBar = false;
       }
-    } else if (Platform.isIOS) {
+    } else if (Platform.isIOS || PlatformUtils.isOhos) {
       _hideSystemBar = showSystemBar_;
     } else {
       _hideSystemBar = false;

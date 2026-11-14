@@ -85,6 +85,8 @@ abstract final class ImageUtils {
         return true;
       }
     }
+    // 鸿蒙保存到图库时由系统弹窗让用户确认，不需要也申请不到相册权限
+    if (PlatformUtils.isOhos) return true;
     return requestPer();
   }
 

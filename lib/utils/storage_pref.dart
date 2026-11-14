@@ -463,7 +463,9 @@ abstract final class Pref {
   static bool get cdnSpeedTest =>
       _setting.get(SettingBoxKey.cdnSpeedTest, defaultValue: true);
 
+  // 上游的发布页没有鸿蒙安装包，自动检查只会提示一个装不了的版本
   static bool get autoUpdate =>
+      !PlatformUtils.isOhos &&
       _setting.get(SettingBoxKey.autoUpdate, defaultValue: true);
 
   static bool get horizontalPreview =>
