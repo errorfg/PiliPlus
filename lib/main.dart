@@ -369,7 +369,7 @@ class MyApp extends StatelessWidget {
       );
 
       if (colors != null) {
-        final corePalettes = CorePalettesExt.fromList(colors.toList());
+        final corePalettes = CorePalettesExt.fromList(List<int>.from(colors));
         if (kDebugMode) {
           debugPrint('dynamic_color: Core palette detected.');
         }
