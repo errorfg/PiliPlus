@@ -696,9 +696,11 @@ abstract final class Pref {
   static bool get pipNoDanmaku =>
       _setting.get(SettingBoxKey.pipNoDanmaku, defaultValue: false);
 
-  /// 鸿蒙：HDR 视频渲染到由系统合成的画面层上以点亮 HDR
+  /// 鸿蒙：HDR 视频渲染到由系统合成的画面层上以点亮 HDR。
+  /// 现有的 libmpv 在这条路径上不能让系统按 HDR 合成（见 docs/harmony-port.md），
+  /// 所以默认关闭，设置里也不显示。
   static bool get ohosHdrOutput =>
-      _setting.get(SettingBoxKey.ohosHdrOutput, defaultValue: true);
+      _setting.get(SettingBoxKey.ohosHdrOutput, defaultValue: false);
 
   static bool get enableVerticalExpand =>
       _setting.get(SettingBoxKey.enableVerticalExpand, defaultValue: false);
