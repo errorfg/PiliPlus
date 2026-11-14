@@ -374,6 +374,13 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
         return;
       }
       if (PlatformUtils.isOhos) {
+        if (!autoEnter) {
+          // 先退回普通输出，小窗一出现就有画面；没能进入画中画时再恢复
+          _setOhosHdrSuspended(true);
+          Future.delayed(const Duration(seconds: 3), () {
+            if (!OhosPip.isPipMode) _setOhosHdrSuspended(false);
+          });
+        }
         OhosPip.enter(
           width: state.width == 0 ? width : state.width,
           height: state.height == 0 ? height : state.height,
@@ -693,8 +700,21 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
     } else if (PlatformUtils.isOhos && OhosPip.isAvailable) {
       _isAutoEnterPip = autoPiP;
       OhosPip.onAction = _onOhosPipAction;
+      OhosPip.mode.addListener(_onOhosPipModeChanged);
     }
   }
+
+  /// 画中画窗口里只有 Flutter 的画面，HDR 视频所在的独立图层不会跟过去，
+  /// 所以画中画期间让 HDR 视频退回普通输出（映射为 SDR）。
+  /// 鸿蒙的视频输出类只存在于鸿蒙构建的播放器补丁里，这里只能动态调用。
+  void _setOhosHdrSuspended(bool suspended) {
+    try {
+      // ignore: avoid_dynamic_calls
+      (_videoController as dynamic)?.setHdrSuspended(suspended);
+    } catch (_) {}
+  }
+
+  void _onOhosPipModeChanged() => _setOhosHdrSuspended(OhosPip.isPipMode);
 
   void _onOhosPipAction(String event, int? status) {
     switch (event) {
@@ -1732,6 +1752,7 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
       IOSPipHelper.dispose();
     } else if (PlatformUtils.isOhos) {
       if (OhosPip.onAction == _onOhosPipAction) OhosPip.onAction = null;
+      OhosPip.mode.removeListener(_onOhosPipModeChanged);
     }
     _timer?.cancel();
     // _position.close();

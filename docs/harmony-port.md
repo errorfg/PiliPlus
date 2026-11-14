@@ -127,6 +127,7 @@
 - 播放器补丁：HDR 画面层接上时把 `vo` 设为 `ohcodec_embed`，离开时换回 `gpu-next`。
 - 开关怎么传给播放器：`OhosVideoController` 只存在于鸿蒙构建的补丁里，共用代码不能引用它，所以应用把 mpv 的 `script-opts` 设成 `ohos-hdr=yes`，控制器读它。试过 `user-data/…` 属性，从字符串接口写不进去。
 - 代价：直通时 libmpv 的着色器、截图、色调映射都不可用，所以只在 PQ/HLG 的视频上启用。
+- 画中画：小窗里只有 Flutter 的画面，HDR 的独立图层不会跟过去（实测小窗是黑的）。所以画中画期间让 HDR 视频退回纹理输出（映射为 SDR），退出后恢复。应用通过动态调用控制器的 `setHdrSuspended` 来切换。
 
 HDR Vivid 的流（2026-11-14 实测，视频「华为HDRVIVID测试」，已登录）：
 
