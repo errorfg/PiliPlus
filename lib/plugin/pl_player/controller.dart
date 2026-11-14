@@ -985,9 +985,7 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
       } catch (_) {}
       // HDR 画中画的小窗里没有 Flutter 画的字幕，把字幕文字交给原生端叠加
       player.stream.subtitle.listen(
-        (lines) => OhosBridge.updateHdrPipSubtitle(
-          lines.where((e) => e.isNotEmpty).join('\n'),
-        ),
+        (subtitle) => OhosBridge.updateHdrPipSubtitle(subtitle.toString()),
       );
     }
 
