@@ -172,6 +172,8 @@ class _MainAppState extends PopScopeState<MainApp>
       } else if (_mainController.enableMYBar) {
         bottomNav = Obx(
           () => NavigationBar(
+            // 鸿蒙底部的导航条避让区约 32，叠在默认的 80 上留白过多
+            height: PlatformUtils.isOhos ? 56 : null,
             maintainBottomViewPadding: true,
             onDestinationSelected: _mainController.setIndex,
             selectedIndex: _mainController.selectedIndex.value,
