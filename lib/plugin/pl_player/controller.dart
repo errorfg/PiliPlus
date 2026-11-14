@@ -895,8 +895,9 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
     );
 
     if (PlatformUtils.isOhos && Pref.ohosHdrOutput) {
-      // 鸿蒙的视频输出按这个属性决定 HDR 视频是否交给系统合成
-      player.setProperty('user-data/ohos-hdr', 'yes');
+      // 鸿蒙的视频输出（只存在于鸿蒙构建的播放器补丁里）按这一项决定
+      // HDR 视频是否由解码器直接送显。script-opts 是 mpv 给外部用的键值表。
+      player.setProperty('script-opts', 'ohos-hdr=yes');
     }
 
     // >100% 的音量走 af 增益+限幅，避免直接放大 mpv volume 导致削波
