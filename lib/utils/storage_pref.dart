@@ -252,6 +252,11 @@ abstract final class Pref {
     if (codecs is List) {
       return codecs.map((i) => VideoDecodeFormatType.values.byName(i)).toList();
     }
+    // 鸿蒙的 libmpv 只有 H.264 与 HEVC 的硬解，AV1 走 dav1d 软解
+    // （Mate XTs 上 1080p30 的处理器占用约为硬解的 3 倍）。
+    if (PlatformUtils.isOhos) {
+      return const <VideoDecodeFormatType>[.AVC, .HEVC];
+    }
     return const <VideoDecodeFormatType>[.AVC, .AV1];
   }
 
