@@ -388,7 +388,8 @@ class _MemberPageState extends State<MemberPage> {
             ],
           ),
         ),
-        if (PlatformUtils.isMobile)
+        // 鸿蒙没有让应用把指定页面固定到桌面的接口
+        if (PlatformUtils.isMobile && !PlatformUtils.isOhos)
           PopupMenuItem(
             onTap: _createShortcut,
             child: const Row(
