@@ -8,6 +8,11 @@ dependencies:
       url: https://gitcode.com/CPF-Flutter/flutter_packages.git
       path: packages/path_provider/path_provider_ohos
       ref: a0e6cebef8ca58767fcd6d2afdedc3fa1b5a88c1
+  file_picker_ohos:
+    git:
+      url: https://gitcode.com/CPF-Flutter/fluttertpc_file_picker.git
+      path: packages/file_picker_ohos
+      ref: 094f80934d9391a191fea4a4c238415302d204d0
   shared_preferences_ohos:
     git:
       url: https://gitcode.com/CPF-Flutter/flutter_packages.git
@@ -85,3 +90,13 @@ dependency_overrides:
       ref: eb931a01a060f80bad6175d8238300f7b855ea7e
   # share_plus 的鸿蒙分支把 path_provider 指向 git 上的旧分支，这里改回 pub.dev 的版本
   path_provider: ^2.1.5
+  # file_picker_ohos 声明的接口版本是 3.x，与 file_picker 13 用的 4.x 只差一处返回类型
+  file_picker_platform_interface: ^4.2.0
+  # 图片裁剪的鸿蒙实现只到 12.2.1；Dart 端仍用 9.x 的接口包，只取它的鸿蒙原生部分
+  image_cropper:
+    git:
+      url: https://gitcode.com/CPF-Flutter/fluttertpc_image_cropper.git
+      path: image_cropper
+      ref: 034f5a655ebb8679800492112a8594e86bba16e3
+  image_cropper_platform_interface: ^9.0.0
+  image_cropper_for_web: ^8.0.0
