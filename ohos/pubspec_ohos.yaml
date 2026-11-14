@@ -8,6 +8,11 @@ dependencies:
       url: https://gitcode.com/CPF-Flutter/flutter_packages.git
       path: packages/path_provider/path_provider_ohos
       ref: a0e6cebef8ca58767fcd6d2afdedc3fa1b5a88c1
+  shared_preferences_ohos:
+    git:
+      url: https://gitcode.com/CPF-Flutter/flutter_packages.git
+      path: packages/shared_preferences/shared_preferences_ohos
+      ref: a0e6cebef8ca58767fcd6d2afdedc3fa1b5a88c1
   url_launcher_ohos:
     git:
       url: https://gitcode.com/CPF-Flutter/flutter_packages.git

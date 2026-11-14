@@ -1,5 +1,6 @@
 import { FlutterAbility, FlutterEngine } from '@ohos/flutter_ohos';
 import { GeneratedPluginRegistrant } from '../plugins/GeneratedPluginRegistrant';
+import ChatKeyboardPlugin from '../plugins/ChatKeyboardPlugin';
 import DeviceOrientationPlugin from '../plugins/DeviceOrientationPlugin';
 import ScreenBrightnessPlugin from '../plugins/ScreenBrightnessPlugin';
 
@@ -10,5 +11,6 @@ export default class EntryAbility extends FlutterAbility {
     // 没有现成鸿蒙实现的插件，在宿主里按 Dart 端的通道协议实现
     flutterEngine.getPlugins()?.add(new DeviceOrientationPlugin())
     flutterEngine.getPlugins()?.add(new ScreenBrightnessPlugin())
+    flutterEngine.getPlugins()?.add(new ChatKeyboardPlugin())
   }
 }
