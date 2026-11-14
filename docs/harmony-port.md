@@ -38,7 +38,8 @@
 
 - 实测 `oh-3.47.7-dev` 能解析上游 2.2.1 的全部依赖并出包。这样不需要转接包，也不需要 9200 行组件副本。
 - 代价：这是开发分支，比上游要求的 3.47.9 低两个补丁版本。上游 26 个 SDK 补丁里 22 个直接可用，4 个（text_selection、selectable_region、scrollable_gesture、navigator，共 6 处）要维护鸿蒙版本。
-- pub 上的 `material_ui`、`cupertino_ui` 不认识鸿蒙平台，有 84 处平台分支要补。目前按「与安卓同组」填写，字体排版一处按 Flutter OH 自带实现归入 Linux 组。这部分尚未逐处对照。
+- pub 上的 `material_ui`、`cupertino_ui` 不认识鸿蒙平台，有 84 处平台分支要补。先按「与安卓同组」填写，再用脚本逐文件对照 Flutter OH 自带的 material、cupertino 里鸿蒙所在的分组：cupertino 的 11 个文件全部一致；material 有 10 个文件不同，其中影响行为的已改成与 Flutter OH 一致——点状态栏回到顶部（与 iOS 同组）、滚动条不用安卓样式、抽屉不按「系统有返回键」处理、日期选择不振动、下拉菜单选择后收起焦点、字体排版归入 Linux 组。
+- 仍与 Flutter OH 不同的 4 处只涉及无障碍朗读和 `AlertDialog` 默认可滚动，没有改。Flutter OH 给鸿蒙用的默认转场 `OpenRightwardsPageTransitionsBuilder` 在 pub 包里不存在，鸿蒙回落到缩放转场。
 
 ### 3.2 `TargetPlatform.ohos` 不进共用代码
 
