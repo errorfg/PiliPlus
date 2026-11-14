@@ -69,7 +69,13 @@
 - `libmpv.so` 用的是 2.1 那个仓库作者重新编译的二进制，没有自行从源码编译。
 - 实测（Mate XTs，1080p30）：H.264 与 HEVC 走 ohcodec 硬解、零拷贝、不丢帧；AV1 只有 dav1d 软解，处理器占用约为硬解的 3 倍。库里没有 VP9，也没有 AV1 硬解。
 - 因此鸿蒙的默认首选编码是 AVC、HEVC（其他平台是 AVC、AV1）。
-- AV1 没有硬解不是 libmpv 的取舍，而是这台设备没有 AV1 解码器。用系统接口 `OH_AVCodec_GetCapabilityByCategory` 在 Mate XTs 上查到的视频解码器：AVC、HEVC 各有硬件（`OMX.hisi.video.decoder.*`）和系统软件解码器，VVC 只有硬件解码器，AV1、VP9、VP8 硬件和软件都没有。系统接口从 API 23 起定义了 AV1、VP9 的格式名，但是否有实现取决于设备。FFmpeg 的鸿蒙解码封装（`libavcodec/ohdec.c`）也只声明了 `h264_oh` 和 `hevc_oh` 两个视频解码器。所以 AV1 只能走 libmpv 自带的 dav1d 软解。
+- AV1 没有硬解不是 libmpv 的取舍，而是这台设备没有 AV1 的硬件解码器。用系统接口 `OH_AVCodec_GetCapabilityByCategory` 在 Mate XTs（API 26）上查到的视频解码器（格式名取自系统导出的常量，AV1 是 `video/av1`，不是 `video/av01`）：
+  - AVC、HEVC：硬件（`OMX.hisi.video.decoder.avc`、`.hevc`）和系统软件解码器都有。
+  - VVC：只有硬件解码器（`OMX.hisi.video.decoder.vvc`）。
+  - AV1、VP9、VP8、MPEG2：没有硬件解码器，只有系统软件解码器（`OH.Media.Codec.Decoder.Video.AV1` 等）。
+- 官方文档《AVCodec支持的格式》把 AV1、VP9、VP8 标为 API 23 起支持，并写明「解码能力和设备强相关」，要用上面的接口查询，没有列出机型。华为开发者论坛的《一文读懂 HarmonyOS 6.1 带来的十大 API 重要升级》说得更具体：这一批新增的是「视频软解码能力」。
+- FFmpeg 的鸿蒙解码封装来自 FFmpeg 上游的提交 e7f44f8c「avcodec/ohdec: Add h264/hevc OpenHarmony decoders」（Zhao Zhili，2025-07，进入 FFmpeg 8.0，Changelog 里是一行「OpenHarmony hardware decoder/encoder」），提交说明只有标题，没有解释为什么只做这两种；cnoim 的分叉在它上面加了零拷贝、智能流畅、可变帧率，没有增加编码种类。`libavcodec/ohdec.c` 只声明 `h264_oh`、`hevc_oh` 两个视频解码器。
+- 所以 AV1 走 libmpv 自带的 dav1d 软解。系统自带的 AV1 软件解码器没有被用到，也没有比较过两者的性能。
 
 ### 3.6 不提供动态取色
 
