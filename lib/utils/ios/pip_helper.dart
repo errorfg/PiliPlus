@@ -32,8 +32,6 @@ abstract final class IOSPipHelper {
       case 'onStateChanged':
         final args = call.arguments as Map;
         isActive = args['active'] as bool;
-        // The PiP window takes its picture from the texture.
-        PlPlayerController.instance?.iosHdrOutput?.suspended = isActive;
         // PiP may start after the video track was dropped for background.
         if (isActive) PlPlayerController.instance?.restoreVideoFromBackground();
         final isResumed =
@@ -72,6 +70,7 @@ abstract final class IOSPipHelper {
     int textureId, {
     required int? width,
     required int? height,
+    required int? hdrViewId,
     required bool autoEnter,
     required Map<String, Object> state,
   }) {
@@ -80,6 +79,7 @@ abstract final class IOSPipHelper {
       'textureId': textureId,
       'width': ?width,
       'height': ?height,
+      'hdrViewId': ?hdrViewId,
       'autoEnter': autoEnter,
       ...state,
     });

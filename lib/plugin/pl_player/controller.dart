@@ -368,12 +368,12 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
     if (videoPlayerController case NativePlayer(:final state)) {
       if (Platform.isIOS) {
         if (videoController?.id.value case final textureId?) {
-          // 画中画的画面取自纹理，手动进入前先让 HDR 视频回到纹理
-          if (!autoEnter) iosHdrOutput?.suspended = true;
           IOSPipHelper.enter(
             textureId,
             width: state.width == 0 ? width : state.width,
             height: state.height == 0 ? height : state.height,
+            // HDR 视频显示在平台视图的图层上，画中画直接取这个图层
+            hdrViewId: iosHdrOutput?.viewId.value,
             autoEnter: autoEnter,
             state: _iosPipState(state),
           );
@@ -742,6 +742,13 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
   /// 小窗存在期间播放不随应用退到后台而暂停。
   /// 「后台画中画」是在开始播放时登记的，那时 HDR 画面层往往还没接上。
   /// 画面层接上或撤下后按当前的输出方式重新登记，否则会登记在另一条路径上。
+  /// 画面在纹理和 HDR 图层之间切换后，后台画中画要按新的画面来源重新登记。
+  void _onIosHdrViewChanged() {
+    if (_isAutoEnterPip && playerStatus.isPlaying && _isCurrVideoPage) {
+      enterPip(autoEnter: true);
+    }
+  }
+
   void _onOhosHdrSurfaceChanged() {
     if (_isAutoEnterPip && playerStatus.isPlaying && _isCurrVideoPage) {
       enterPip(autoEnter: true);
@@ -973,7 +980,8 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
     );
 
     if (Platform.isIOS && Pref.hdrDirectOutput) {
-      iosHdrOutput = IosHdrOutput(player);
+      iosHdrOutput = IosHdrOutput(player)
+        ..viewId.addListener(_onIosHdrViewChanged);
     }
 
     assert(_videoController == null);
@@ -1227,6 +1235,9 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
       }),
       stream.buffering.listen((bool buffering) {
         isBuffering.value = buffering;
+        // 画中画的时钟在缓冲时停住；缓冲结束后要让它重新走起来，
+        // 否则系统认为视频没有在播放，退到后台时不会自动进入画中画
+        _updateIOSPip();
         if (!playerStatus.isCompleted) {
           _stopWakeLockTimer();
           _updatePlaybackState();

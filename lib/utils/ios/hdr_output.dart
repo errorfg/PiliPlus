@@ -27,19 +27,12 @@ class IosHdrOutput {
 
   StreamSubscription<VideoParams>? _subscription;
   bool _attached = false;
-  bool _suspended = false;
   bool _disposed = false;
 
-  /// Whether the video is currently shown on the HDR layer.
-  bool get attached => _attached;
-
-  /// Shows HDR video through the texture (tone mapped) while set. Used while
-  /// the picture is taken from the texture, as in picture-in-picture.
-  set suspended(bool value) {
-    if (_suspended == value) return;
-    _suspended = value;
-    _update();
-  }
+  /// The id of the platform view the video is currently shown on, or null
+  /// while it is in the texture. Picture-in-picture takes its picture from
+  /// that view's layer, so it must be set up again when this changes.
+  final ValueNotifier<int?> viewId = ValueNotifier<int?>(null);
 
   String _property(String name) {
     try {
@@ -56,7 +49,6 @@ class IosHdrOutput {
     final gamma = _property('video-params/gamma');
     if (gamma.isEmpty) return;
     final useHdr =
-        !_suspended &&
         (gamma == 'pq' || gamma == 'hlg') &&
         _property('hwdec-current').contains('videotoolbox');
     if (!useHdr && active.value) detach();
@@ -75,8 +67,9 @@ class IosHdrOutput {
     if (hasVideo) player.setProperty('vid', vid);
   }
 
-  /// Lets the decoder's frames go to the layer at address [layer].
-  void attach(int layer) {
+  /// Lets the decoder's frames go to the layer at address [layer], which
+  /// belongs to the platform view [id].
+  void attach(int layer, int id) {
     if (_disposed || !active.value || _attached) return;
     _attached = true;
     _switchOutput({
@@ -85,12 +78,14 @@ class IosHdrOutput {
       'hwdec-image-format': 'p010',
       'vo': 'avfoundation',
     });
+    viewId.value = id;
   }
 
   /// Goes back to rendering into the Flutter texture.
   void detach() {
     if (!_attached) return;
     _attached = false;
+    viewId.value = null;
     if (_disposed) return;
     _switchOutput({
       'hwdec-image-format': 'no',
@@ -144,7 +139,7 @@ class _HdrViewState extends State<_HdrView> {
     final layer = await MethodChannel(
       '${_viewType}_$id',
     ).invokeMethod<int>('layer');
-    if (mounted && layer != null) widget.output.attach(layer);
+    if (mounted && layer != null) widget.output.attach(layer, id);
   }
 
   @override

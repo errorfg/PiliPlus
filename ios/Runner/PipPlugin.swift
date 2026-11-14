@@ -10,6 +10,10 @@ import UIKit
 /// map texture ids to textures and to get notified of new frames. Frames of the
 /// tracked texture are copied and fed to an `AVSampleBufferDisplayLayer`, which
 /// is used as the PiP content source (iOS 15+).
+///
+/// HDR video is not in the texture: libmpv hands the decoder's frames to the
+/// layer of a platform view (`HdrVideoView.swift`). That layer is then the
+/// content source itself, and nothing is copied.
 final class PipPlugin: NSObject, FlutterPlugin {
   private static let channelName = "com.example.piliplus/pip"
 
@@ -25,6 +29,8 @@ final class PipPlugin: NSObject, FlutterPlugin {
 
   private let channel: FlutterMethodChannel
   private var _session: AnyObject?
+  /// Invalidates `enter` requests that are still waiting for the HDR layer.
+  private var enterGeneration = 0
 
   @available(iOS 15.0, *)
   private var session: PipSession? {
@@ -57,38 +63,14 @@ final class PipPlugin: NSObject, FlutterPlugin {
         result(FlutterError(code: "ARGS", message: "textureId is required", details: nil))
         return
       }
-      let session: PipSession
-      if let current = self.session, current.textureId == textureId {
-        session = current
-      } else {
-        tearDown()
-        session = PipSession(textureId: textureId) { [weak self] method, arguments in
-          self?.channel.invokeMethod(method, arguments: arguments)
-        }
-        session.onStop = { [weak self, weak session] in
-          // Keep the session alive while armed for auto-enter.
-          guard let self, let session, self.session === session,
-            !session.autoEnter
-          else { return }
-          self.tearDown()
-        }
-        self.session = session
-      }
-      session.configure(
-        width: (args["width"] as? NSNumber)?.doubleValue ?? 16,
-        height: (args["height"] as? NSNumber)?.doubleValue ?? 9
-      )
-      session.update(args)
-      if args["autoEnter"] as? Bool == true {
-        session.autoEnter = true
-      } else {
-        session.start()
-      }
+      enterGeneration += 1
+      enter(args, textureId: textureId, generation: enterGeneration, attempt: 0)
       result(nil)
     case "update":
       session?.update(args)
       result(nil)
     case "disableAutoEnter":
+      enterGeneration += 1
       if let session {
         session.autoEnter = false
         if !session.isActive {
@@ -97,10 +79,62 @@ final class PipPlugin: NSObject, FlutterPlugin {
       }
       result(nil)
     case "dispose":
+      enterGeneration += 1
       tearDown()
       result(nil)
     default:
       result(FlutterMethodNotImplemented)
+    }
+  }
+
+  /// Sets up the session for `enter`. A session on the HDR layer is only
+  /// created once that layer is on screen and showing frames: a controller
+  /// created for a layer that shows nothing yet does not start Picture in
+  /// Picture automatically until the app has been in the background once.
+  @available(iOS 15.0, *)
+  private func enter(_ args: [String: Any], textureId: Int64, generation: Int, attempt: Int) {
+    guard generation == enterGeneration else { return }
+    if let hdrViewId = (args["hdrViewId"] as? NSNumber)?.int64Value,
+      !HdrVideoViewFactory.isShowingVideo(inView: hdrViewId), attempt < 50
+    {
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+        self?.enter(args, textureId: textureId, generation: generation, attempt: attempt + 1)
+      }
+      return
+    }
+    let hdrViewId = (args["hdrViewId"] as? NSNumber)?.int64Value
+    let session: PipSession
+    if let current = self.session, current.textureId == textureId,
+      current.hdrViewId == hdrViewId
+    {
+      session = current
+    } else {
+      tearDown()
+      session = PipSession(
+        textureId: textureId,
+        hdrViewId: hdrViewId,
+        hdrLayer: hdrViewId.flatMap(HdrVideoViewFactory.layer(forView:))
+      ) { [weak self] method, arguments in
+        self?.channel.invokeMethod(method, arguments: arguments)
+      }
+      session.onStop = { [weak self, weak session] in
+        // Keep the session alive while armed for auto-enter.
+        guard let self, let session, self.session === session,
+          !session.autoEnter
+        else { return }
+        self.tearDown()
+      }
+      self.session = session
+    }
+    session.configure(
+      width: (args["width"] as? NSNumber)?.doubleValue ?? 16,
+      height: (args["height"] as? NSNumber)?.doubleValue ?? 9
+    )
+    session.update(args)
+    if args["autoEnter"] as? Bool == true {
+      session.autoEnter = true
+    } else {
+      session.start()
     }
   }
 
@@ -121,6 +155,10 @@ private final class PipSession: NSObject {
   private static let idleFrameInterval = 0.25
 
   let textureId: Int64
+  /// The HDR platform view whose layer is the content source, if any.
+  let hdrViewId: Int64?
+  /// Whether the content source is a layer fed by libmpv, not by this class.
+  private let isExternalLayer: Bool
   var onStop: (() -> Void)?
   private(set) var isActive = false
 
@@ -164,10 +202,17 @@ private final class PipSession: NSObject {
   /// Size of the PiP window in pixels, zero until known.
   private var renderSize = CGSize.zero
 
-  init(textureId: Int64, sendEvent: @escaping (String, Any?) -> Void) {
+  init(
+    textureId: Int64,
+    hdrViewId: Int64?,
+    hdrLayer: AVSampleBufferDisplayLayer?,
+    sendEvent: @escaping (String, Any?) -> Void
+  ) {
     let sourceView = SampleBufferView()
-    let displayLayer = sourceView.layer as! AVSampleBufferDisplayLayer
-    displayLayer.videoGravity = .resizeAspect
+    let displayLayer = hdrLayer ?? sourceView.layer as! AVSampleBufferDisplayLayer
+    if hdrLayer == nil {
+      displayLayer.videoGravity = .resizeAspect
+    }
     var timebase: CMTimebase?
     CMTimebaseCreateWithSourceClock(
       allocator: kCFAllocatorDefault,
@@ -178,6 +223,10 @@ private final class PipSession: NSObject {
     displayLayer.controlTimebase = timebase
 
     self.textureId = textureId
+    self.hdrViewId = hdrViewId
+    self.isExternalLayer = hdrLayer != nil
+    // libmpv is already showing frames on the HDR layer.
+    self.hasFrame = hdrLayer != nil
     self.sendEvent = sendEvent
     self.sourceView = sourceView
     self.displayLayer = displayLayer
@@ -216,6 +265,7 @@ private final class PipSession: NSObject {
         self.enteredBackground = false
         if self.controller.isPictureInPictureActive {
           self.stopRequested = true
+          self.setHdrMirroring(true)
           self.controller.stopPictureInPicture()
         }
       },
@@ -225,6 +275,8 @@ private final class PipSession: NSObject {
   /// Places the (hidden) source layer where the player usually is, so the
   /// system's start/stop animation roughly matches the inline video.
   func configure(width: Double, height: Double) {
+    // The HDR layer is the inline video itself.
+    if isExternalLayer { return }
     guard let window = Self.hostWindow() else { return }
     if sourceView.superview !== window {
       // Below the Flutter view: it must be in the window, but not visible.
@@ -310,13 +362,25 @@ private final class PipSession: NSObject {
     }
     // The content source retains its playback delegate (`self`).
     controller.contentSource = nil
+    if isExternalLayer {
+      displayLayer.controlTimebase = nil
+      setHdrMirroring(false)
+    }
     sourceView.removeFromSuperview()
   }
 
   // MARK: Frames
 
+  /// See `HdrVideoViewFactory.setMirroring`.
+  private func setHdrMirroring(_ mirroring: Bool) {
+    if let hdrViewId {
+      HdrVideoViewFactory.setMirroring(mirroring, forView: hdrViewId)
+    }
+  }
+
   /// Must be called on the main thread.
   func frameAvailable(force: Bool = false) {
+    if isExternalLayer { return }
     guard !frameInFlight, let texture = TextureTracker.texture(for: textureId) else {
       return
     }
@@ -501,6 +565,7 @@ extension PipSession: AVPictureInPictureControllerDelegate {
   ) {
     isActive = false
     backgroundOnStart = false
+    setHdrMirroring(false)
     sendEvent("onStateChanged", ["active": false, "error": error.localizedDescription])
     DispatchQueue.main.async { [weak self] in self?.onStop?() }
   }
@@ -511,6 +576,7 @@ extension PipSession: AVPictureInPictureControllerDelegate {
       @escaping (Bool) -> Void
   ) {
     restoring = true
+    setHdrMirroring(true)
     completionHandler(true)
   }
 
@@ -518,6 +584,11 @@ extension PipSession: AVPictureInPictureControllerDelegate {
     _ pictureInPictureController: AVPictureInPictureController
   ) {
     isActive = false
+    // The layer shows the video inline again from its next frame on.
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+      guard let self, !self.isActive else { return }
+      self.setHdrMirroring(false)
+    }
     // Neither restored nor stopped by the app: closed from the PiP window.
     let closed = !restoring && !stopRequested
     stopRequested = false
