@@ -49,6 +49,7 @@ import 'package:PiliPlus/plugin/pl_player/widgets/common_btn.dart';
 import 'package:PiliPlus/plugin/pl_player/widgets/forward_seek.dart';
 import 'package:PiliPlus/plugin/pl_player/widgets/mpv_convert_webp.dart';
 import 'package:PiliPlus/plugin/pl_player/widgets/play_pause_btn.dart';
+import 'package:PiliPlus/utils/ios/hdr_output.dart';
 import 'package:PiliPlus/utils/ohos/ohos_bridge.dart';
 import 'package:PiliPlus/utils/android/bindings.g.dart';
 import 'package:PiliPlus/utils/cache_manager.dart';
@@ -1333,6 +1334,12 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
     }
   }
 
+  /// iOS 上 HDR 视频显示在盖住纹理的系统图层里。
+  Widget _hdrVideo(Widget video) {
+    final output = plPlayerController.iosHdrOutput;
+    return output == null ? video : IosHdrVideo(output: output, child: video);
+  }
+
   @override
   Widget build(BuildContext context) {
     maxWidth = widget.maxWidth;
@@ -2047,10 +2054,12 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
                   child: FittedBox(
                     fit: videoFit.boxFit,
                     alignment: widget.alignment,
-                    child: SimpleVideo(
-                      controller: plPlayerController.videoController!,
-                      fill: widget.fill,
-                      aspectRatio: videoFit.aspectRatio,
+                    child: _hdrVideo(
+                      SimpleVideo(
+                        controller: plPlayerController.videoController!,
+                        fill: widget.fill,
+                        aspectRatio: videoFit.aspectRatio,
+                      ),
                     ),
                   ),
                 );

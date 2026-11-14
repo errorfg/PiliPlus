@@ -30,6 +30,7 @@ import 'package:PiliPlus/plugin/pl_player/models/video_fit_type.dart';
 import 'package:PiliPlus/plugin/pl_player/utils/danmaku_options.dart';
 import 'package:PiliPlus/plugin/pl_player/utils/fullscreen.dart';
 import 'package:PiliPlus/services/service_locator.dart';
+import 'package:PiliPlus/utils/ios/hdr_output.dart';
 import 'package:PiliPlus/utils/ohos/ohos_bridge.dart';
 import 'package:PiliPlus/utils/ohos/ohos_pip.dart';
 import 'package:PiliPlus/utils/accounts.dart';
@@ -78,6 +79,9 @@ typedef PlayOwner = ({String tag, Type? type});
 class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
   Player? _videoPlayerController;
   VideoController? _videoController;
+
+  /// iOS 上把 HDR 视频交给系统图层显示（见 lib/utils/ios/hdr_output.dart）。
+  IosHdrOutput? iosHdrOutput;
 
   static PlPlayerController? _instance;
 
@@ -364,6 +368,8 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
     if (videoPlayerController case NativePlayer(:final state)) {
       if (Platform.isIOS) {
         if (videoController?.id.value case final textureId?) {
+          // 画中画的画面取自纹理，手动进入前先让 HDR 视频回到纹理
+          if (!autoEnter) iosHdrOutput?.suspended = true;
           IOSPipHelper.enter(
             textureId,
             width: state.width == 0 ? width : state.width,
@@ -858,6 +864,7 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
         _videoPlayerController?.dispose();
         _videoPlayerController = null;
         _videoController = null;
+        iosHdrOutput = null;
         return;
       }
 
@@ -953,7 +960,7 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
       ),
     );
 
-    if (PlatformUtils.isOhos && Pref.ohosHdrOutput) {
+    if (PlatformUtils.isOhos && Pref.hdrDirectOutput) {
       // 鸿蒙的视频输出（只存在于鸿蒙构建的播放器补丁里）按这一项决定
       // HDR 视频是否由解码器直接送显。script-opts 是 mpv 给外部用的键值表。
       player.setProperty('script-opts', 'ohos-hdr=yes');
@@ -964,6 +971,10 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
       player,
       PlatformUtils.isMobile ? Pref.playerVolume / 100 : volume.value,
     );
+
+    if (Platform.isIOS && Pref.hdrDirectOutput) {
+      iosHdrOutput = IosHdrOutput(player);
+    }
 
     assert(_videoController == null);
 
@@ -1024,6 +1035,7 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
         player.dispose();
         player = null;
         _videoController = null;
+        iosHdrOutput = null;
         return;
       }
       _videoPlayerController = player;
@@ -1839,6 +1851,7 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
     _videoPlayerController?.dispose();
     _videoPlayerController = null;
     _videoController = null;
+    iosHdrOutput = null;
     _instance = null;
     videoPlayerServiceHandler?.clear();
   }

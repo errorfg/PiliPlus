@@ -22,5 +22,10 @@ import UIKit
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "ReservedRegionsPlugin") {
       ReservedRegionsPlugin.register(with: registrar)
     }
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "HdrVideoView") {
+      registrar.register(
+        HdrVideoViewFactory(messenger: registrar.messenger()),
+        withId: HdrVideoViewFactory.viewType)
+    }
   }
 }

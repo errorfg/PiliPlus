@@ -211,7 +211,7 @@ abstract final class SettingBoxKey {
   static const String enableShowDanmaku = 'enableShowDanmaku',
       enableShowLiveDanmaku = 'enableShowLiveDanmaku',
       pipNoDanmaku = 'pipNoDanmaku',
-      ohosHdrOutput = 'ohosHdrOutput',
+      hdrDirectOutput = 'hdrDirectOutput',
       showVipDanmaku = 'showVipDanmaku',
       mergeDanmaku = 'mergeDanmaku',
       danmakuWeight = 'danmakuWeight',

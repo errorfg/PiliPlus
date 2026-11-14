@@ -697,8 +697,8 @@ abstract final class Pref {
       _setting.get(SettingBoxKey.pipNoDanmaku, defaultValue: false);
 
   /// 鸿蒙：HDR 视频由硬件解码器直接送显到系统合成的画面层上，以点亮 HDR
-  static bool get ohosHdrOutput =>
-      _setting.get(SettingBoxKey.ohosHdrOutput, defaultValue: true);
+  static bool get hdrDirectOutput =>
+      _setting.get(SettingBoxKey.hdrDirectOutput, defaultValue: true);
 
   static bool get enableVerticalExpand =>
       _setting.get(SettingBoxKey.enableVerticalExpand, defaultValue: false);

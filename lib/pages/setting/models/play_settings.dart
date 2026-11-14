@@ -351,12 +351,12 @@ List<SettingsModel> get playSettings => [
             }
           : null,
     ),
-  if (PlatformUtils.isOhos)
+  if (PlatformUtils.isOhos || Platform.isIOS)
     const SwitchModel(
       title: 'HDR 直出',
-      subtitle: 'HDR 视频由解码器直接送显以点亮 HDR，此时播放器的着色器与截图不可用；关闭后映射为 SDR 显示。下次播放生效',
+      subtitle: 'HDR 视频由解码器直接送显以点亮 HDR，此时播放器的着色器不可用；关闭后映射为 SDR 显示。下次播放生效',
       leading: Icon(Icons.hdr_on_outlined),
-      setKey: SettingBoxKey.ohosHdrOutput,
+      setKey: SettingBoxKey.hdrDirectOutput,
       defaultVal: true,
     ),
   // PiP on iOS only shows the video frames, without danmaku.
