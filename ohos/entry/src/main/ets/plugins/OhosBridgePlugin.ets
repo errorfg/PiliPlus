@@ -8,6 +8,7 @@ import {
   MethodResult
 } from '@ohos/flutter_ohos';
 import { MovingPhotoSave } from './MovingPhotoSave';
+import { HdrVideoViewFactory } from './HdrVideoView';
 
 export default class OhosBridgePlugin implements FlutterPlugin, MethodCallHandler {
   private channel: MethodChannel | null = null;
@@ -19,6 +20,8 @@ export default class OhosBridgePlugin implements FlutterPlugin, MethodCallHandle
   onAttachedToEngine(binding: FlutterPluginBinding): void {
     this.channel = new MethodChannel(binding.getBinaryMessenger(), 'piliplus/ohos');
     this.channel.setMethodCallHandler(this);
+    binding.getPlatformViewRegistry()?.registerViewFactory(
+      'piliplus/hdr_video', new HdrVideoViewFactory(binding.getBinaryMessenger()));
   }
 
   onDetachedFromEngine(binding: FlutterPluginBinding): void {

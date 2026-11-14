@@ -696,6 +696,10 @@ abstract final class Pref {
   static bool get pipNoDanmaku =>
       _setting.get(SettingBoxKey.pipNoDanmaku, defaultValue: false);
 
+  /// 鸿蒙：HDR 视频渲染到由系统合成的画面层上以点亮 HDR
+  static bool get ohosHdrOutput =>
+      _setting.get(SettingBoxKey.ohosHdrOutput, defaultValue: true);
+
   static bool get enableVerticalExpand =>
       _setting.get(SettingBoxKey.enableVerticalExpand, defaultValue: false);
 
