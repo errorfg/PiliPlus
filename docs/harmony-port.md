@@ -69,6 +69,7 @@
 - `libmpv.so` 用的是 2.1 那个仓库作者重新编译的二进制，没有自行从源码编译。
 - 实测（Mate XTs，1080p30）：H.264 与 HEVC 走 ohcodec 硬解、零拷贝、不丢帧；AV1 只有 dav1d 软解，处理器占用约为硬解的 3 倍。库里没有 VP9，也没有 AV1 硬解。
 - 因此鸿蒙的默认首选编码是 AVC、HEVC（其他平台是 AVC、AV1）。
+- AV1 没有硬解不是 libmpv 的取舍，而是这台设备没有 AV1 解码器。用系统接口 `OH_AVCodec_GetCapabilityByCategory` 在 Mate XTs 上查到的视频解码器：AVC、HEVC 各有硬件（`OMX.hisi.video.decoder.*`）和系统软件解码器，VVC 只有硬件解码器，AV1、VP9、VP8 硬件和软件都没有。系统接口从 API 23 起定义了 AV1、VP9 的格式名，但是否有实现取决于设备。FFmpeg 的鸿蒙解码封装（`libavcodec/ohdec.c`）也只声明了 `h264_oh` 和 `hevc_oh` 两个视频解码器。所以 AV1 只能走 libmpv 自带的 dav1d 软解。
 
 ### 3.6 不提供动态取色
 
