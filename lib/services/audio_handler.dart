@@ -1,6 +1,7 @@
 import 'dart:io' show File, Platform;
 import 'dart:ui' show PlatformDispatcher;
 
+import 'package:PiliPlus/utils/ohos/ohos_bridge.dart';
 import 'package:PiliPlus/utils/platform_utils.dart';
 import 'package:PiliPlus/utils/ohos/ohos_pip.dart';
 import 'package:PiliPlus/common/constants.dart';
@@ -254,6 +255,7 @@ class VideoPlayerServiceHandler extends BaseAudioHandler with SeekHandler {
       );
     } else if (PlatformUtils.isOhos) {
       OhosPip.updatePlaying(playing);
+      OhosBridge.updateHdrPipPlaying(playing);
     }
   }
 

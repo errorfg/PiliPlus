@@ -49,6 +49,7 @@ import 'package:PiliPlus/plugin/pl_player/widgets/common_btn.dart';
 import 'package:PiliPlus/plugin/pl_player/widgets/forward_seek.dart';
 import 'package:PiliPlus/plugin/pl_player/widgets/mpv_convert_webp.dart';
 import 'package:PiliPlus/plugin/pl_player/widgets/play_pause_btn.dart';
+import 'package:PiliPlus/utils/ohos/ohos_bridge.dart';
 import 'package:PiliPlus/utils/android/bindings.g.dart';
 import 'package:PiliPlus/utils/cache_manager.dart';
 import 'package:PiliPlus/utils/connectivity_utils.dart';
@@ -336,6 +337,15 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // Keep playing in the PiP window.
     if (Platform.isIOS && IOSPipHelper.isActive) return;
+    // 鸿蒙的 HDR 画中画：应用在后台，小窗里由解码器直接送显
+    if (PlatformUtils.isOhos &&
+        (OhosBridge.hdrPipActive.value || OhosBridge.hdrPipAutoArmed)) {
+      if (!OhosBridge.hdrPipActive.value && state == .paused) {
+        // 等系统自动进入画中画；没有进入就照常按「后台播放」处理
+        plPlayerController.ohosPauseUnlessHdrPipStarts();
+      }
+      return;
+    }
     if (Platform.isIOS) {
       if (state == .paused) {
         plPlayerController.dropVideoInBackground();

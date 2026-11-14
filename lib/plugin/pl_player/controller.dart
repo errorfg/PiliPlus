@@ -30,6 +30,7 @@ import 'package:PiliPlus/plugin/pl_player/models/video_fit_type.dart';
 import 'package:PiliPlus/plugin/pl_player/utils/danmaku_options.dart';
 import 'package:PiliPlus/plugin/pl_player/utils/fullscreen.dart';
 import 'package:PiliPlus/services/service_locator.dart';
+import 'package:PiliPlus/utils/ohos/ohos_bridge.dart';
 import 'package:PiliPlus/utils/ohos/ohos_pip.dart';
 import 'package:PiliPlus/utils/accounts.dart';
 import 'package:PiliPlus/utils/android/android_helper.dart';
@@ -374,18 +375,20 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
         return;
       }
       if (PlatformUtils.isOhos) {
-        if (!autoEnter) {
-          // 先退回普通输出，小窗一出现就有画面；没能进入画中画时再恢复
-          _setOhosHdrSuspended(true);
-          Future.delayed(const Duration(seconds: 3), () {
-            if (!OhosPip.isPipMode) _setOhosHdrSuspended(false);
-          });
+        final w = state.width == 0 ? width : state.width;
+        final h = state.height == 0 ? height : state.height;
+        if (_ohosHdrOutputActive) {
+          // HDR 的画面层直接交给系统做画中画，不走把 Flutter 画面搬进小窗的方式
+          OhosPip.disableAutoEnter();
+          if (autoEnter) {
+            OhosBridge.setHdrPipAuto(true, width: w ?? 16, height: h ?? 9);
+          } else {
+            OhosBridge.startHdrPip(width: w ?? 16, height: h ?? 9);
+          }
+        } else {
+          OhosBridge.setHdrPipAuto(false);
+          OhosPip.enter(width: w, height: h, autoEnter: autoEnter);
         }
-        OhosPip.enter(
-          width: state.width == 0 ? width : state.width,
-          height: state.height == 0 ? height : state.height,
-          autoEnter: autoEnter,
-        );
         return;
       }
       PageUtils.enterPip(
@@ -404,6 +407,7 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
         IOSPipHelper.disableAutoEnter();
       } else if (PlatformUtils.isOhos) {
         OhosPip.disableAutoEnter();
+        OhosBridge.setHdrPipAuto(false);
       } else {
         PiliAndroidHelper.disableAutoEnterPip();
       }
@@ -701,6 +705,8 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
       _isAutoEnterPip = autoPiP;
       OhosPip.onAction = _onOhosPipAction;
       OhosPip.mode.addListener(_onOhosPipModeChanged);
+      OhosBridge.onHdrPipAction = _onOhosPipAction;
+      OhosBridge.hdrPipActive.addListener(_onOhosHdrPipChanged);
     }
   }
 
@@ -715,6 +721,31 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
   }
 
   void _onOhosPipModeChanged() => _setOhosHdrSuspended(OhosPip.isPipMode);
+
+  /// 视频是否正显示在 HDR 的独立图层上。
+  bool get _ohosHdrOutputActive {
+    try {
+      // ignore: avoid_dynamic_calls
+      return (_videoController as dynamic)?.hdrOutputActive == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// HDR 画中画结束时如果应用还在后台，按「后台播放」的设置决定是否停下：
+  /// 小窗存在期间播放不随应用退到后台而暂停。
+  void ohosPauseUnlessHdrPipStarts() {
+    Future.delayed(const Duration(milliseconds: 1500), _onOhosHdrPipChanged);
+  }
+
+  void _onOhosHdrPipChanged() {
+    if (OhosBridge.hdrPipActive.value) return;
+    if (WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed &&
+        !continuePlayInBackground.value &&
+        playerStatus.isPlaying) {
+      pause();
+    }
+  }
 
   void _onOhosPipAction(String event, int? status) {
     switch (event) {
@@ -1753,6 +1784,10 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
     } else if (PlatformUtils.isOhos) {
       if (OhosPip.onAction == _onOhosPipAction) OhosPip.onAction = null;
       OhosPip.mode.removeListener(_onOhosPipModeChanged);
+      if (OhosBridge.onHdrPipAction == _onOhosPipAction) {
+        OhosBridge.onHdrPipAction = null;
+      }
+      OhosBridge.hdrPipActive.removeListener(_onOhosHdrPipChanged);
     }
     _timer?.cancel();
     // _position.close();

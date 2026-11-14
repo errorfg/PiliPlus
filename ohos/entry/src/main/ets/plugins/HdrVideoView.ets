@@ -16,6 +16,7 @@ import {
 } from '@ohos/flutter_ohos';
 import { Params } from '@ohos/flutter_ohos/src/main/ets/plugin/platform/PlatformView';
 import { common } from '@kit.AbilityKit';
+import { HdrPip } from './HdrPip';
 
 const TAG = 'HdrVideoView';
 
@@ -64,6 +65,8 @@ function hdrSurfaceBuilder(params: Params) {
 }
 
 export class HdrVideoView extends PlatformView implements MethodCallHandler {
+  // 当前显示着的 HDR 画面层，画中画用它
+  static active: HdrVideoView | null = null;
   controller: HdrSurfaceController = new HdrSurfaceController(this);
   channel: MethodChannel | null = null;
   surfaceId: string = '';
@@ -75,6 +78,7 @@ export class HdrVideoView extends PlatformView implements MethodCallHandler {
     super();
     this.channel = new MethodChannel(messenger, `piliplus/hdr_video_${viewId}`);
     this.channel.setMethodCallHandler(this);
+    HdrVideoView.active = this;
   }
 
   onMethodCall(call: MethodCall, result: MethodResult): void {
@@ -105,6 +109,10 @@ export class HdrVideoView extends PlatformView implements MethodCallHandler {
   }
 
   dispose(): void {
+    HdrPip.onViewDisposed(this);
+    if (HdrVideoView.active === this) {
+      HdrVideoView.active = null;
+    }
     this.channel?.setMethodCallHandler(null);
     this.channel = null;
   }
