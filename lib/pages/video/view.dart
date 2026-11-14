@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 import 'dart:math';
 
+import 'package:PiliPlus/utils/ohos/ohos_pip.dart';
 import 'package:PiliPlus/common/assets.dart';
 import 'package:PiliPlus/common/style.dart';
 import 'package:PiliPlus/common/widgets/custom_icon.dart';
@@ -146,9 +147,18 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
   final videoRelatedKey = GlobalKey();
   final videoIntroKey = GlobalKey();
 
+
+  // 进入或退出画中画时，页面在「只有播放器」与正常布局之间切换
+  void _onOhosPipModeChanged() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
+    if (PlatformUtils.isOhos) {
+      OhosPip.mode.addListener(_onOhosPipModeChanged);
+    }
     ReservedRegions.observe();
     ReservedRegions.regions.addListener(_onReservedRegionsChanged);
 
@@ -288,7 +298,7 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
           }
         } else {
           if (plPlayerController!.controlsLock.value &&
-              (!Platform.isAndroid || !AndroidHelper.isPipMode)) {
+              !PlPlayerController.systemPipMode) {
             plPlayerController!.onLockControl(false);
           }
         }
@@ -338,6 +348,9 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
 
   @override
   void dispose() {
+    if (PlatformUtils.isOhos) {
+      OhosPip.mode.removeListener(_onOhosPipModeChanged);
+    }
     ReservedRegions.regions.removeListener(_onReservedRegionsChanged);
     plPlayerController
       ?..removeStatusLister(playerListener)

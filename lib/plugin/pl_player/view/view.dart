@@ -919,7 +919,7 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
   @override
   void didUpdateWidget(covariant PLVideoPlayer oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (Platform.isAndroid && AndroidHelper.isPipMode) {
+    if (PlPlayerController.systemPipMode) {
       plPlayerController.controls = false;
     }
   }

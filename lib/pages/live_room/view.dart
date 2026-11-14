@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:PiliPlus/utils/ohos/ohos_pip.dart';
 import 'package:PiliPlus/common/assets.dart';
 import 'package:PiliPlus/common/style.dart';
 import 'package:PiliPlus/common/widgets/button/icon_button.dart';
@@ -96,9 +97,18 @@ class _LiveRoomPageState extends State<LiveRoomPage>
   late final GlobalKey scKey = GlobalKey();
   late final GlobalKey playerKey = GlobalKey();
 
+
+  // 进入或退出画中画时，页面在「只有播放器」与正常布局之间切换
+  void _onOhosPipModeChanged() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
+    if (PlatformUtils.isOhos) {
+      OhosPip.mode.addListener(_onOhosPipModeChanged);
+    }
     addObserverMobile(this);
     liveController = Get.put(
       LiveRoomController(heroTag),
@@ -207,6 +217,9 @@ class _LiveRoomPageState extends State<LiveRoomPage>
 
   @override
   void dispose() {
+    if (PlatformUtils.isOhos) {
+      OhosPip.mode.removeListener(_onOhosPipModeChanged);
+    }
     removeObserverMobile(this);
     videoPlayerServiceHandler?.onVideoDetailDispose(heroTag);
     if ((Platform.isAndroid || PlatformUtils.isOhos) &&
@@ -252,7 +265,7 @@ class _LiveRoomPageState extends State<LiveRoomPage>
   @override
   Widget build(BuildContext context) {
     Widget child;
-    if (Platform.isAndroid && AndroidHelper.isPipMode) {
+    if (PlPlayerController.systemPipMode) {
       child = videoPlayerPanel(
         isFullScreen,
         width: maxWidth,

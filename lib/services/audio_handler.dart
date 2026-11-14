@@ -1,6 +1,8 @@
 import 'dart:io' show File, Platform;
 import 'dart:ui' show PlatformDispatcher;
 
+import 'package:PiliPlus/utils/platform_utils.dart';
+import 'package:PiliPlus/utils/ohos/ohos_pip.dart';
 import 'package:PiliPlus/common/constants.dart';
 import 'package:PiliPlus/grpc/bilibili/app/listener/v1.pb.dart' show DetailItem;
 import 'package:PiliPlus/models_new/download/bili_download_entry_info.dart';
@@ -250,6 +252,8 @@ class VideoPlayerServiceHandler extends BaseAudioHandler with SeekHandler {
         isLive,
         playing,
       );
+    } else if (PlatformUtils.isOhos) {
+      OhosPip.updatePlaying(playing);
     }
   }
 

@@ -30,6 +30,7 @@ import 'package:PiliPlus/plugin/pl_player/models/video_fit_type.dart';
 import 'package:PiliPlus/plugin/pl_player/utils/danmaku_options.dart';
 import 'package:PiliPlus/plugin/pl_player/utils/fullscreen.dart';
 import 'package:PiliPlus/services/service_locator.dart';
+import 'package:PiliPlus/utils/ohos/ohos_pip.dart';
 import 'package:PiliPlus/utils/accounts.dart';
 import 'package:PiliPlus/utils/android/android_helper.dart';
 import 'package:PiliPlus/utils/android/bindings.g.dart';
@@ -203,8 +204,12 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
 
   late final bool autoPiP = Pref.autoPiP;
   bool get isPipMode =>
+      systemPipMode || (PlatformUtils.isDesktop && isDesktopPip);
+
+  /// 应用是否显示在系统的画中画窗口里（安卓、鸿蒙）。
+  static bool get systemPipMode =>
       (Platform.isAndroid && AndroidHelper.isPipMode) ||
-      (PlatformUtils.isDesktop && isDesktopPip);
+      (PlatformUtils.isOhos && OhosPip.isPipMode);
   late bool isDesktopPip = false;
   late nativeapi.Rectangle _lastWindowBounds;
   static nativeapi.Rectangle? _lastPipBounds;
@@ -368,6 +373,14 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
         }
         return;
       }
+      if (PlatformUtils.isOhos) {
+        OhosPip.enter(
+          width: state.width == 0 ? width : state.width,
+          height: state.height == 0 ? height : state.height,
+          autoEnter: autoEnter,
+        );
+        return;
+      }
       PageUtils.enterPip(
         autoEnter: autoEnter,
         width: state.width == 0 ? width : state.width,
@@ -382,6 +395,8 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
     if (_isAutoEnterPip) {
       if (Platform.isIOS) {
         IOSPipHelper.disableAutoEnter();
+      } else if (PlatformUtils.isOhos) {
+        OhosPip.disableAutoEnter();
       } else {
         PiliAndroidHelper.disableAutoEnterPip();
       }
@@ -675,6 +690,26 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
       }
     } else if (Platform.isIOS && autoPiP && IOSPipHelper.isAvailable) {
       _isAutoEnterPip = true;
+    } else if (PlatformUtils.isOhos && OhosPip.isAvailable) {
+      _isAutoEnterPip = autoPiP;
+      OhosPip.onAction = _onOhosPipAction;
+    }
+  }
+
+  void _onOhosPipAction(String event, int? status) {
+    switch (event) {
+      case 'playbackStateChanged':
+        // status：1 请求播放，0 请求暂停；没有时按当前状态取反
+        final wantPlay = status == null ? !playerStatus.isPlaying : status == 1;
+        if (wantPlay) {
+          play();
+        } else {
+          pause();
+        }
+      case 'fastForward':
+        onForward(fastForBackwardDuration);
+      case 'fastBackward':
+        onBackward(fastForBackwardDuration);
     }
   }
 
@@ -1689,6 +1724,8 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
       AndroidHelper$ToDart.onUserLeaveHint = null;
     } else if (Platform.isIOS) {
       IOSPipHelper.dispose();
+    } else if (PlatformUtils.isOhos) {
+      if (OhosPip.onAction == _onOhosPipAction) OhosPip.onAction = null;
     }
     _timer?.cancel();
     // _position.close();

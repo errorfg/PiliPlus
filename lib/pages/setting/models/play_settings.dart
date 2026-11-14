@@ -14,6 +14,7 @@ import 'package:PiliPlus/plugin/pl_player/models/bottom_progress_behavior.dart';
 import 'package:PiliPlus/plugin/pl_player/models/fullscreen_mode.dart';
 import 'package:PiliPlus/plugin/pl_player/models/play_repeat.dart';
 import 'package:PiliPlus/services/service_locator.dart';
+import 'package:PiliPlus/utils/ohos/ohos_pip.dart';
 import 'package:PiliPlus/utils/android/android_helper.dart';
 import 'package:PiliPlus/utils/desktop/window_controller.dart';
 import 'package:PiliPlus/utils/extension/num_ext.dart';
@@ -334,7 +335,8 @@ List<SettingsModel> get playSettings => [
       defaultVal: false,
     ),
   if ((Platform.isAndroid && PiliAndroidHelper.isPipAvailable) ||
-      (Platform.isIOS && IOSPipHelper.isAvailable))
+      (Platform.isIOS && IOSPipHelper.isAvailable) ||
+      (PlatformUtils.isOhos && OhosPip.isAvailable))
     SwitchModel(
       title: '后台画中画',
       subtitle: '进入后台时以小窗形式（PiP）播放',
@@ -350,7 +352,7 @@ List<SettingsModel> get playSettings => [
           : null,
     ),
   // PiP on iOS only shows the video frames, without danmaku.
-  if (Platform.isAndroid)
+  if (Platform.isAndroid || PlatformUtils.isOhos)
     const SwitchModel(
       title: '画中画不加载弹幕',
       subtitle: '当弹幕开关开启时，小窗屏蔽弹幕以获得较好的体验',

@@ -8,6 +8,11 @@ dependencies:
       url: https://gitcode.com/CPF-Flutter/flutter_packages.git
       path: packages/path_provider/path_provider_ohos
       ref: a0e6cebef8ca58767fcd6d2afdedc3fa1b5a88c1
+  # 画中画的鸿蒙原生实现；Dart 端用 lib/utils/ohos/ohos_pip.dart，不引用这个包的 Dart 代码
+  floating:
+    git:
+      url: https://github.com/qinshah/floating.git
+      ref: 3eefccb759c4ea8114e722f1511fe1dbce70dc9f
   file_picker_ohos:
     git:
       url: https://gitcode.com/CPF-Flutter/fluttertpc_file_picker.git

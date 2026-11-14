@@ -147,7 +147,7 @@ mixin _LiveDMStreamMixin
           superChatMsg.insert(0, item);
           addDm(item);
           if (!enableFSSC) return;
-          if (Platform.isAndroid && AndroidHelper.isPipMode) return;
+          if (PlPlayerController.systemPipMode) return;
           if (plPlayerController.showDanmaku &&
               (isFullScreen || plPlayerController.isDesktopPip)) {
             fsSC.value = item.copyWith(

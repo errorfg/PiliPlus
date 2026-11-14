@@ -38,6 +38,7 @@ import 'package:PiliPlus/plugin/pl_player/models/data_source.dart';
 import 'package:PiliPlus/plugin/pl_player/models/play_repeat.dart';
 import 'package:PiliPlus/services/shutdown_timer_service.dart'
     show shutdownTimerService, ShutdownPanel;
+import 'package:PiliPlus/utils/ohos/ohos_pip.dart';
 import 'package:PiliPlus/utils/accounts.dart';
 import 'package:PiliPlus/utils/android/android_helper.dart';
 import 'package:PiliPlus/utils/connectivity_utils.dart';
@@ -1882,6 +1883,7 @@ class HeaderControlState extends State<HeaderControl>
                 ),
                 if ((Platform.isAndroid && PiliAndroidHelper.isPipAvailable) ||
                     (Platform.isIOS && IOSPipHelper.isAvailable) ||
+                    (PlatformUtils.isOhos && OhosPip.isAvailable) ||
                     (PlatformUtils.isDesktop && !isFullScreen))
                   SizedBox(
                     width: btnWidth,
