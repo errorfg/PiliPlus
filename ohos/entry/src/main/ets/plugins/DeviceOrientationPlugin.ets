@@ -12,20 +12,12 @@ import {
 } from '@ohos/flutter_ohos';
 import { EventSink, StreamHandler } from '@ohos/flutter_ohos/src/main/ets/plugin/common/EventChannel';
 import { sensor } from '@kit.SensorServiceKit';
-import { display } from '@kit.ArkUI';
 
 const TAG = 'DeviceOrientationPlugin';
 // 屏幕平面内的重力角偏离当前方向多少度才切换。竖横分界在 45°，两侧各留 20° 防抖。
 const SWITCH_MARGIN = 20;
 // 设备接近平放时重力在屏幕平面内的分量很小，方向不可靠，不上报。
 const MIN_PLANAR_GRAVITY = 3.0;
-// 三折叠全部展开时，传感器坐标轴上的方向对应的屏幕方向。
-const EXPANDED_MAP: Record<string, string> = {
-  'portraitUp': 'landscapeLeft',
-  'portraitDown': 'landscapeRight',
-  'landscapeLeft': 'portraitDown',
-  'landscapeRight': 'portraitUp'
-};
 
 export default class DeviceOrientationPlugin implements FlutterPlugin, MethodCallHandler, StreamHandler {
   private channel: MethodChannel | null = null;
@@ -33,20 +25,7 @@ export default class DeviceOrientationPlugin implements FlutterPlugin, MethodCal
   private sink: EventSink | null = null;
   private listening = false;
   private withAutoRotate = false;
-  // 按传感器坐标轴判断出的方向（未做折叠态换算）。
   private current: string | null = null;
-  // 最近一次上报给 Dart 的方向。
-  private reported: string | null = null;
-  // 三折叠全部展开时，屏幕的正方向相对传感器坐标轴转了 90°。
-  private fullyExpanded = false;
-  private foldListening = false;
-  private onFoldStatus = (status: display.FoldStatus): void => {
-    const expanded = status === display.FoldStatus.FOLD_STATUS_EXPANDED_WITH_SECOND_EXPANDED;
-    if (expanded !== this.fullyExpanded) {
-      this.fullyExpanded = expanded;
-      this.report();
-    }
-  };
   private onGravity = (data: sensor.GravityResponse): void => this.handle(data.x, data.y);
 
   getUniqueClassName(): string {
@@ -88,7 +67,6 @@ export default class DeviceOrientationPlugin implements FlutterPlugin, MethodCal
     this.sink = events;
     this.withAutoRotate = (args as Map<string, Object>)?.get('checkIsAutoRotate') === true;
     this.current = null;
-    this.reported = null;
     this.start();
   }
 
@@ -100,14 +78,6 @@ export default class DeviceOrientationPlugin implements FlutterPlugin, MethodCal
   private start(): void {
     if (this.listening) {
       return;
-    }
-    try {
-      this.fullyExpanded =
-        display.getFoldStatus() === display.FoldStatus.FOLD_STATUS_EXPANDED_WITH_SECOND_EXPANDED;
-      display.on('foldStatusChange', this.onFoldStatus);
-      this.foldListening = true;
-    } catch (e) {
-      Log.e(TAG, `fold status unavailable: ${JSON.stringify(e)}`);
     }
     try {
       sensor.on(sensor.SensorId.GRAVITY, this.onGravity, { interval: 'normal' });
@@ -127,14 +97,6 @@ export default class DeviceOrientationPlugin implements FlutterPlugin, MethodCal
       Log.e(TAG, `sensor.off failed: ${JSON.stringify(e)}`);
     }
     this.listening = false;
-    if (this.foldListening) {
-      try {
-        display.off('foldStatusChange', this.onFoldStatus);
-      } catch (e) {
-        Log.e(TAG, `display.off failed: ${JSON.stringify(e)}`);
-      }
-      this.foldListening = false;
-    }
   }
 
   // x、y 是重力在设备坐标轴上的分量：竖直正立时 y≈+9.8，逆时针转 90° 后 x≈+9.8。
@@ -148,18 +110,6 @@ export default class DeviceOrientationPlugin implements FlutterPlugin, MethodCal
       return;
     }
     this.current = next;
-    this.report();
-  }
-
-  private report(): void {
-    if (this.current == null) {
-      return;
-    }
-    const next = this.fullyExpanded ? EXPANDED_MAP[this.current] : this.current;
-    if (next === this.reported) {
-      return;
-    }
-    this.reported = next;
     if (this.withAutoRotate) {
       const payload = new Map<string, Object>();
       payload.set('orientation', next);
