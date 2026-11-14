@@ -1,13 +1,59 @@
 // HDR 视频的画中画：把 HDR 画面层（HdrVideoView 里的 XComponent）直接交给系统。
-// 系统把这一层挪进小窗，解码器照常直接送显，HDR 保持点亮；小窗里只有视频，
-// 没有 Flutter 画的弹幕和字幕。普通视频的画中画走 floating 插件，不经过这里。
+// 系统把这一层挪进小窗，解码器照常直接送显，HDR 保持点亮。小窗里没有 Flutter
+// 画的内容，字幕由这里用画中画的自定义界面层叠在视频上方，弹幕没有。
+// 普通视频的画中画走 floating 插件，不经过这里。
 import { Log, MethodChannel } from '@ohos/flutter_ohos';
 import { common } from '@kit.AbilityKit';
-import { PiPWindow } from '@kit.ArkUI';
+import { BuilderNode, FrameNode, NodeController, PiPWindow, UIContext } from '@kit.ArkUI';
 import { BusinessError } from '@kit.BasicServicesKit';
 import { HdrVideoView } from './HdrVideoView';
 
 const TAG = 'HdrPip';
+const SUBTITLE_KEY = 'hdrPipSubtitle';
+
+// 叠在小窗视频上方的字幕。文字由 Dart 端随播放器的字幕更新。
+@Component
+struct HdrPipSubtitle {
+  @StorageProp(SUBTITLE_KEY) text: string = '';
+
+  build() {
+    Column() {
+      if (this.text.length > 0) {
+        Text(this.text)
+          .fontSize(12)
+          .fontColor(Color.White)
+          .textAlign(TextAlign.Center)
+          .maxLines(3)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+          .padding({ left: 6, right: 6, top: 2, bottom: 2 })
+          .backgroundColor('#99000000')
+          .borderRadius(4)
+          .margin({ left: 12, right: 12, bottom: 8 })
+      }
+    }
+    .width('100%')
+    .height('100%')
+    .justifyContent(FlexAlign.End)
+    .hitTestBehavior(HitTestMode.None)
+  }
+}
+
+@Builder
+function buildHdrPipSubtitle() {
+  HdrPipSubtitle()
+}
+
+class SubtitleNodeController extends NodeController {
+  private root: BuilderNode<[]> | null = null;
+
+  makeNode(uiContext: UIContext): FrameNode | null {
+    if (this.root === null) {
+      this.root = new BuilderNode(uiContext);
+      this.root.build(wrapBuilder(buildHdrPipSubtitle));
+    }
+    return this.root.getFrameNode();
+  }
+}
 
 export class HdrPip {
   static channel: MethodChannel | null = null;
@@ -34,7 +80,8 @@ export class HdrPip {
       templateType: PiPWindow.PiPTemplateType.VIDEO_PLAY,
       contentWidth: width,
       contentHeight: height,
-      controlGroups: [PiPWindow.VideoPlayControlGroup.FAST_FORWARD_BACKWARD]
+      controlGroups: [PiPWindow.VideoPlayControlGroup.FAST_FORWARD_BACKWARD],
+      customUIController: new SubtitleNodeController()
     });
     controller.on('stateChange', (state: PiPWindow.PiPState, reason: string) => {
       Log.i(TAG, `state ${state} ${reason}`);
@@ -98,6 +145,10 @@ export class HdrPip {
     } catch (e) {
       Log.e(TAG, `updatePiPControlStatus failed: ${JSON.stringify(e)}`);
     }
+  }
+
+  static setSubtitle(text: string): void {
+    AppStorage.setOrCreate(SUBTITLE_KEY, text);
   }
 
   static async stop(): Promise<void> {

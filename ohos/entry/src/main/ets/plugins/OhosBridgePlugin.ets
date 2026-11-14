@@ -63,6 +63,10 @@ export default class OhosBridgePlugin implements FlutterPlugin, MethodCallHandle
         HdrPip.updatePlaying(call.argument('playing') as boolean);
         result.success(null);
         break;
+      case 'hdrPipSubtitle':
+        HdrPip.setSubtitle((call.argument('text') as string) ?? '');
+        result.success(null);
+        break;
       case 'hdrPipStop':
         HdrPip.stop().then(() => result.success(null));
         break;

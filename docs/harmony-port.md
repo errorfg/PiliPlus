@@ -127,7 +127,7 @@
 - 播放器补丁：HDR 画面层接上时把 `vo` 设为 `ohcodec_embed`，离开时换回 `gpu-next`。
 - 开关怎么传给播放器：`OhosVideoController` 只存在于鸿蒙构建的补丁里，共用代码不能引用它，所以应用把 mpv 的 `script-opts` 设成 `ohos-hdr=yes`，控制器读它。试过 `user-data/…` 属性，从字符串接口写不进去。
 - 代价：直通时 libmpv 的着色器、截图、色调映射都不可用，所以只在 PQ/HLG 的视频上启用。
-- 画中画：鸿蒙的画中画有两种内容来源。普通视频用 `floating` 插件，它把 Flutter 引擎的输出切到小窗里的画面层，弹幕和字幕都在。HDR 的独立图层不属于 Flutter 的输出，这种方式下小窗是黑的。所以 HDR 视频走另一种：把 HDR 画面层的 `XComponent` 直接交给系统（`PiPWindow.create` 的 `componentController`，宿主的 `HdrPip`），系统把这一层挪进小窗，解码器照常直接送显，HDR 保持点亮，小窗里没有弹幕和字幕（用户确认采用这种方式）。
+- 画中画：鸿蒙的画中画有两种内容来源。普通视频用 `floating` 插件，它把 Flutter 引擎的输出切到小窗里的画面层，弹幕和字幕都在。HDR 的独立图层不属于 Flutter 的输出，这种方式下小窗是黑的。所以 HDR 视频走另一种：把 HDR 画面层的 `XComponent` 直接交给系统（`PiPWindow.create` 的 `componentController`，宿主的 `HdrPip`），系统把这一层挪进小窗，解码器照常直接送显，HDR 保持点亮，小窗里没有 Flutter 画的内容（用户确认采用这种方式，真机验证进出小窗不再缓冲）。字幕用 `PiPConfiguration.customUIController` 叠在视频上方：Dart 端把播放器的字幕文字传给原生端，原生端用一个 ArkUI 的文本节点显示。弹幕没有。
   - 分流在 `PlPlayerController.enterPip`：视频正显示在 HDR 图层上（动态读控制器的 `hdrOutputActive`）就走 `OhosBridge.startHdrPip` / `setHdrPipAuto`，否则走 `OhosPip`。
   - HDR 画中画期间应用在后台，播放不随生命周期暂停；小窗关闭时若应用仍在后台，按「后台播放」的设置决定是否停下。
   - 兜底：如果 `floating` 的画中画在 HDR 视频上启动了（例如后台自动进入是在 HDR 图层接上之前登记的），控制器的 `setHdrSuspended` 让视频退回纹理输出，避免黑屏。

@@ -81,6 +81,18 @@ abstract final class OhosBridge {
     }
   }
 
+  static String _hdrPipSubtitle = '';
+
+  /// 小窗里的字幕。小窗没有 Flutter 的画面，字幕由原生端叠在视频上方。
+  static Future<void> updateHdrPipSubtitle(String text) async {
+    if (text == _hdrPipSubtitle) return;
+    if (!hdrPipActive.value && !hdrPipAutoArmed && text.isNotEmpty) return;
+    _hdrPipSubtitle = text;
+    try {
+      await _channel.invokeMethod('hdrPipSubtitle', {'text': text});
+    } catch (_) {}
+  }
+
   static Future<void> updateHdrPipPlaying(bool playing) async {
     if (!hdrPipActive.value && !hdrPipAutoArmed) return;
     try {
