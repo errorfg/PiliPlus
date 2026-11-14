@@ -39,9 +39,11 @@ HDR 视频不在纹理里，原有的画中画（`PipPlugin.swift` 从纹理拷�
 - 直出时 mpv 不渲染，着色器不生效；截图是否可用未验证。
 - 软件解码的 HDR 视频不走这条路径。
 - 小窗里的画面比正片暗，显示控件时发灰。应用送进小窗的是同样的 10 位 HDR 帧，画中画期间 `currentEDRHeadroom` 仍是 8.0；小窗的亮度是否被系统单独限制，没有查到依据。
-- **灵动岛在前台出现（未解决，由 HDR 直出引入）**：播放 HDR 视频时，画面切到 HDR 图层的过程中，系统的「正在播放」就出现在灵动岛里，应用仍在前台；退到后台进小窗后两者并存。用户录屏确认的顺序：进入视频页显示封面（纹理路径）时没有灵动岛 → 切换时黑屏约 3 秒 → 黑屏期间灵动岛出现，早于画中画按 HDR 图层重新登记。普通视频（纹理路径）是否也有，没有可靠记录。
-  - 从源码能确定的、在切换那一刻发生变化的只有：应用窗口里多了一个接收视频帧的 `AVSampleBufferDisplayLayer`；mpv 因视频轨关开做了一次刷新定位（`player/video.c` 的 `issue_refresh_seek`），音频单元随之停止再启动，但不重新激活音频会话（`audio/out/ao_audiounit.m` 的 `start` 只调用 `AudioOutputUnitStart`）。
-  - `audio_service`（上游作者的分支）把「正在播放」的媒体类型固定写成音频（`AudioServicePlugin.m`：`MPNowPlayingInfoPropertyMediaType = MPNowPlayingInfoMediaTypeAudio`）。是否与此有关未验证，改成视频的试验包已做，结果待定。
+- **灵动岛在前台出现（未解决，与 HDR 无关）**：一开始播放，系统的「正在播放」就出现在灵动岛里，应用仍在前台；退到后台进小窗后两者并存。用户用调试包把 HDR 直出、关开视频轨、图层、输出切换、画中画全部关掉后现象不变，所以不是 HDR 改动引入的。
+  - 证据（设备系统日志，`idevicesyslog -u <UDID> -n`）：`mediaremoted` 把 YouTube 的播放端记为 `com.google.ios.youtube (pid) YouTube`，把 PiliPlus 的记为 `* (pid)`，没有包名和名称。
+  - 已签名安装包的权限里 `application-identifier` 是 `<团队>.*`（`codesign -d --entitlements`），2.2.0 (5635)、2.2.1 (5702) 和当前包都是如此。签名服务用通配描述文件时把通配符原样写进了权限，没有换成实际的包名。
+  - 推断：系统无法把「正在播放」的会话对应到前台的这个应用，于是在前台也显示灵动岛，进小窗时两者并存。验证方法是用 `application-identifier` 为 `<团队>.com.example.piliplus` 的签名重新出包。尚未验证。
+  - 排查过程中排除的：`audio_service` 把媒体类型写成音频（改成视频无变化）；画中画会话的时钟；HDR 切换的各个步骤。
 - **进入 HDR 视频时黑屏约 3 秒（未解决）**：`active` 一置位就把黑色的平台视图盖在纹理上，而画面要等输出切换、解码器重建后才到。
 - 返回时闪黑的处理和第一次自动进入的修复，各只有一次实测记录。
 
