@@ -9,6 +9,7 @@ import 'package:PiliPlus/common/widgets/scale_app.dart';
 import 'package:PiliPlus/common/widgets/scroll_behavior.dart';
 import 'package:PiliPlus/http/init.dart';
 import 'package:PiliPlus/models/common/theme/theme_color_type.dart';
+import 'package:PiliPlus/plugin/pl_player/controller.dart';
 import 'package:PiliPlus/plugin/pl_player/utils/fullscreen.dart';
 import 'package:PiliPlus/router/app_pages.dart';
 import 'package:PiliPlus/services/account_service.dart';
@@ -197,6 +198,10 @@ void main() async {
     runApp(const MyApp());
   }
 
+  if (PlatformUtils.isMobile) {
+    WidgetsBinding.instance.addObserver(_WindowClassObserver());
+  }
+
   if (PlatformUtils.isDesktop) {
     final window = WindowManager.instance.getCurrent();
     if (window != null) {
@@ -223,6 +228,25 @@ void main() async {
         case .transientCallbacks || .midFrameMicrotasks || .persistentCallbacks:
           WidgetsBinding.instance.addPostFrameCallback(show);
       }
+    }
+  }
+}
+
+/// 折叠屏展开或合上后，窗口在「手机」与「平板」之间切换，启动时按当时的
+/// 窗口设定的方向限制要重新设定，否则合上时锁定的竖屏会带到展开的屏幕上。
+class _WindowClassObserver with WidgetsBindingObserver {
+  bool _isTablet = DeviceUtils.isTablet;
+
+  @override
+  void didChangeMetrics() {
+    final isTablet = DeviceUtils.isTablet;
+    if (isTablet == _isTablet) return;
+    _isTablet = isTablet;
+    if (PlPlayerController.instance?.isFullScreen.value ?? false) return;
+    if (Pref.horizontalScreen) {
+      fullMode();
+    } else {
+      portraitUpMode();
     }
   }
 }
