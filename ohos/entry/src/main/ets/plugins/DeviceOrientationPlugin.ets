@@ -13,6 +13,8 @@ import {
 import { EventSink, StreamHandler } from '@ohos/flutter_ohos/src/main/ets/plugin/common/EventChannel';
 import { sensor } from '@kit.SensorServiceKit';
 import { display } from '@kit.ArkUI';
+import { common } from '@kit.AbilityKit';
+import { settings } from '@kit.BasicServicesKit';
 
 const TAG = 'DeviceOrientationPlugin';
 // 屏幕平面内的重力角偏离当前方向多少度才切换。竖横分界在 45°，两侧各留 20° 防抖。
@@ -31,6 +33,7 @@ export default class DeviceOrientationPlugin implements FlutterPlugin, MethodCal
   private channel: MethodChannel | null = null;
   private eventChannel: EventChannel | null = null;
   private sink: EventSink | null = null;
+  private context: common.Context | null = null;
   private listening = false;
   private withAutoRotate = false;
   // 按传感器坐标轴判断出的方向（未做折叠态换算）。
@@ -54,6 +57,7 @@ export default class DeviceOrientationPlugin implements FlutterPlugin, MethodCal
   }
 
   onAttachedToEngine(binding: FlutterPluginBinding): void {
+    this.context = binding.getApplicationContext();
     this.channel = new MethodChannel(binding.getBinaryMessenger(), 'native_device_orientation');
     this.channel.setMethodCallHandler(this);
     this.eventChannel = new EventChannel(binding.getBinaryMessenger(), 'native_device_orientation_events');
@@ -137,6 +141,19 @@ export default class DeviceOrientationPlugin implements FlutterPlugin, MethodCal
     }
   }
 
+  // 系统的「自动旋转」开关。读不到时按开启处理。
+  private autoRotateEnabled(): boolean {
+    if (this.context == null) {
+      return true;
+    }
+    try {
+      return settings.getValueSync(this.context, settings.general.ACCELEROMETER_ROTATION_STATUS, '1') === '1';
+    } catch (e) {
+      Log.e(TAG, `read auto-rotate setting failed: ${JSON.stringify(e)}`);
+      return true;
+    }
+  }
+
   // x、y 是重力在设备坐标轴上的分量：竖直正立时 y≈+9.8，逆时针转 90° 后 x≈+9.8。
   private handle(x: number, y: number): void {
     if (Math.hypot(x, y) < MIN_PLANAR_GRAVITY) {
@@ -163,7 +180,7 @@ export default class DeviceOrientationPlugin implements FlutterPlugin, MethodCal
     if (this.withAutoRotate) {
       const payload = new Map<string, Object>();
       payload.set('orientation', next);
-      payload.set('isAutoRotate', true);
+      payload.set('isAutoRotate', this.autoRotateEnabled());
       this.sink?.success(payload);
     } else {
       this.sink?.success(next);

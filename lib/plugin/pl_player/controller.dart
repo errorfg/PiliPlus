@@ -600,7 +600,8 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
   bool visible = true;
 
   DeviceOrientation? _orientation;
-  late final checkIsAutoRotate = Platform.isAndroid && mode != .gravity;
+  late final checkIsAutoRotate =
+      (Platform.isAndroid || PlatformUtils.isOhos) && mode != .gravity;
   StreamSubscription<OrientationParams>? _orientationListener;
 
   void _stopOrientationListener() {
@@ -1497,7 +1498,7 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
     } else {
       // https://github.com/flutter/flutter/issues/73651
       // https://github.com/flutter/flutter/issues/183708
-      if (Platform.isAndroid) {
+      if ((Platform.isAndroid || PlatformUtils.isOhos)) {
         if ((orientation ?? _orientation) == .landscapeRight) {
           return landscapeRightMode();
         } else {
@@ -1878,7 +1879,7 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
 
       setPlayCallBack(null);
 
-      if (Platform.isAndroid && _playerCount <= 1) {
+      if ((Platform.isAndroid || PlatformUtils.isOhos) && _playerCount <= 1) {
         _disableAutoEnterPip();
         if (!setSystemBrightness) {
           ScreenBrightnessPlatform.instance.resetApplicationScreenBrightness();

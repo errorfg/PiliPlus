@@ -209,7 +209,8 @@ class _LiveRoomPageState extends State<LiveRoomPage>
   void dispose() {
     removeObserverMobile(this);
     videoPlayerServiceHandler?.onVideoDetailDispose(heroTag);
-    if (Platform.isAndroid && !plPlayerController.setSystemBrightness) {
+    if ((Platform.isAndroid || PlatformUtils.isOhos) &&
+        !plPlayerController.setSystemBrightness) {
       ScreenBrightnessPlatform.instance.resetApplicationScreenBrightness();
     }
     PlPlayerController.setPlayCallBack(null);
