@@ -156,6 +156,10 @@
 - 画中画：手动进入、回到应用后恢复布局。
 - 应用链接：`bilibili://video/…` 打开视频页，`bilibili://browser?url=…` 打开应用内网页（网页能加载），`bilibili://live/…` 打开直播间（当时未开播），`bilibili://login` 打开登录页，`bilibili://search?keyword=…` 打开搜索结果。
 
+其他平台：
+
+- `feature/harmony` 用官方 Flutter 3.47.9 能出 iOS 包，25 项测试通过（2026-11-14）。安卓没有在本机构建过。
+
 ## 8. 待验证
 
 需要登录或需要人手操作，尚未验证：
