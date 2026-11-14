@@ -2,6 +2,7 @@ import { FlutterAbility, FlutterEngine } from '@ohos/flutter_ohos';
 import { GeneratedPluginRegistrant } from '../plugins/GeneratedPluginRegistrant';
 import ChatKeyboardPlugin from '../plugins/ChatKeyboardPlugin';
 import DeviceOrientationPlugin from '../plugins/DeviceOrientationPlugin';
+import OhosBridgePlugin from '../plugins/OhosBridgePlugin';
 import ScreenBrightnessPlugin from '../plugins/ScreenBrightnessPlugin';
 
 export default class EntryAbility extends FlutterAbility {
@@ -12,5 +13,6 @@ export default class EntryAbility extends FlutterAbility {
     flutterEngine.getPlugins()?.add(new DeviceOrientationPlugin())
     flutterEngine.getPlugins()?.add(new ScreenBrightnessPlugin())
     flutterEngine.getPlugins()?.add(new ChatKeyboardPlugin())
+    flutterEngine.getPlugins()?.add(new OhosBridgePlugin())
   }
 }

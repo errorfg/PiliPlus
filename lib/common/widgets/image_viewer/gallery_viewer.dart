@@ -600,7 +600,11 @@ class _GalleryViewerState extends State<GalleryViewer>
                 );
               },
               child: Text(
-                '保存${Platform.isIOS ? ' Live Photo' : '视频'}',
+                '保存${Platform.isIOS
+                    ? ' Live Photo'
+                    : PlatformUtils.isOhos
+                    ? '动态照片'
+                    : '视频'}',
                 style: const TextStyle(fontSize: 14),
               ),
             ),

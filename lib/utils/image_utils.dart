@@ -5,6 +5,7 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:PiliPlus/common/constants.dart';
 import 'package:PiliPlus/http/init.dart';
+import 'package:PiliPlus/utils/ohos/ohos_bridge.dart';
 import 'package:PiliPlus/utils/cache_manager.dart';
 import 'package:PiliPlus/utils/device_utils.dart';
 import 'package:PiliPlus/utils/extension/file_ext.dart';
@@ -17,6 +18,7 @@ import 'package:PiliPlus/utils/share_utils.dart';
 import 'package:PiliPlus/utils/storage_pref.dart';
 import 'package:PiliPlus/utils/utils.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:live_photo_maker/live_photo_maker.dart';
 import 'package:material_ui/material_ui.dart';
@@ -126,6 +128,23 @@ abstract final class ImageUtils {
           SmartDialog.showToast('保存失败');
           return false;
         }
+      } else if (PlatformUtils.isOhos) {
+        final imageFile = await CacheManager.manager.getSingleFile(
+          url.http2https,
+        );
+        if (!silentDownImg) SmartDialog.dismiss(status: SmartStatus.loading);
+        final bool success;
+        try {
+          success = await OhosBridge.saveMovingPhoto(
+            imagePath: imageFile.path,
+            videoPath: videoPath,
+          ).whenComplete(File(videoPath).tryDel);
+        } on PlatformException catch (e) {
+          SmartDialog.showToast(e.message ?? '保存失败');
+          return false;
+        }
+        if (!success) return false;
+        SmartDialog.showToast(' 已保存 ');
       } else {
         if (!silentDownImg) SmartDialog.showLoading(msg: '正在保存');
         await saveFileImg(
