@@ -22,6 +22,7 @@
         "startWindowIcon": "$media:icon",
         "startWindowBackground": "$color:start_window_background",
         "exported": true,
+        "backgroundModes": ["audioPlayback"],
         "skills": [
           {
             "entities": [
@@ -35,7 +36,21 @@
       }
     ],
     "requestPermissions": [
-      {"name" :  "ohos.permission.INTERNET"},
+      {"name": "ohos.permission.INTERNET"},
+      {
+        "name": "ohos.permission.GET_NETWORK_INFO",
+        "reason": "$string:perm_get_network_info_reason",
+        "usedScene": {"abilities": ["EntryAbility"], "when": "inuse"}
+      },
+      {
+        "name": "ohos.permission.KEEP_BACKGROUND_RUNNING",
+        "reason": "$string:perm_keep_background_running_reason",
+        "usedScene": {"abilities": ["EntryAbility"], "when": "inuse"}
+      },
+      {
+        "name": "ohos.permission.VIBRATE",
+        "usedScene": {"abilities": ["EntryAbility"], "when": "inuse"}
+      }
     ]
   }
 }

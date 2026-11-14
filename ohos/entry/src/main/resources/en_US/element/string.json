@@ -11,6 +11,14 @@
     {
       "name": "EntryAbility_label",
       "value": "PiliPlus"
+    },
+    {
+      "name": "perm_get_network_info_reason",
+      "value": "Used to detect the network type for quality selection and data usage hints"
+    },
+    {
+      "name": "perm_keep_background_running_reason",
+      "value": "Used to keep audio and video playing in the background"
     }
   ]
 }

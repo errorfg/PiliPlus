@@ -11,6 +11,14 @@
     {
       "name": "EntryAbility_label",
       "value": "PiliPlus"
+    },
+    {
+      "name": "perm_get_network_info_reason",
+      "value": "用于判断当前网络类型，以选择画质和提示流量使用"
+    },
+    {
+      "name": "perm_keep_background_running_reason",
+      "value": "用于在后台继续播放音视频"
     }
   ]
 }
