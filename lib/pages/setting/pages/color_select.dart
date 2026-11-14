@@ -15,6 +15,7 @@ import 'package:PiliPlus/pages/mine/controller.dart';
 import 'package:PiliPlus/pages/setting/slide_color_picker.dart';
 import 'package:PiliPlus/pages/setting/widgets/popup_item.dart';
 import 'package:PiliPlus/pages/setting/widgets/select_dialog.dart';
+import 'package:PiliPlus/utils/platform_utils.dart';
 import 'package:PiliPlus/utils/extension/get_ext.dart';
 import 'package:PiliPlus/utils/extension/theme_ext.dart';
 import 'package:PiliPlus/utils/storage.dart';
@@ -136,7 +137,7 @@ class _ColorSelectPageState extends State<ColorSelectPage> {
               },
             ),
           ),
-          if (!Platform.isIOS)
+          if (!Platform.isIOS && !PlatformUtils.isOhos)
             Obx(
               () => ListTile(
                 title: const Text('动态取色'),
