@@ -108,7 +108,27 @@
 - 保存动态照片：写入图库要相册权限，普通应用申请不到。做法是先准备好静态图（转成 JPEG）和视频，再在 `Index.ets` 弹出带系统安全控件 `SaveButton` 的确认层，用户点击后在临时授权内用 `MediaAssetChangeRequest` 写入。这个做法取自 2.1 的仓库。
 - 普通图片和视频的保存不走这里，仍用 `saver_gallery`（系统的保存确认弹窗）。
 
-### 3.12 原生顶栏和底栏：暂不做
+### 3.12 HDR
+
+现状（2026-11-14）：HDR 视频色调映射为 SDR 显示，颜色正确；真正点亮 HDR 还没有做到。
+
+事实：
+
+- Flutter 把外接纹理按 SDR、sRGB 合成。libmpv 的目标色彩空间不指定时会跟随片源，把 PQ/BT.2020 的画面写进纹理，结果发灰。所以纹理路径上固定 `target-prim=bt.709`、`target-trc=bt.1886`、`tone-mapping=spline`、`target-colorspace-hint=no`（移植播放器时漏掉了这组设置，cnoim 的分叉里有）。
+- 要点亮 HDR，画面必须在由系统直接合成的图层上。Flutter OH 3.47 的引擎有混合合成模式（`buildinfo.json5` 里 `enable_ohos_hybrid_composition`，已开启）：用 `PlatformViewsService.initExpensiveOhosView` 创建的平台视图是真正的系统图层，Flutter 的内容分成下层和透明的上层画在它两侧。实测开启后应用显示正常，渲染树里能看到 `oh_flutter_1Surface`、平台视图的 surface、`oh_flutter_1__overlaySurface` 三层。
+- 已实现的切换机制：宿主的 `HdrVideoView`（平台视图里一个 `XComponent`）；播放器补丁里 `OhosVideoController` 在片源是 PQ/HLG 且允许时让视频控件改用这个平台视图，把 libmpv 的 `wid` 切到它的 surface，离开时切回纹理。判断片源要读解码侧的 `video-params/gamma`：输出侧的参数在重建视频输出时会短暂变成占位的 sRGB，surface 尺寸变化也不能触发重建，否则会循环。
+- 这套机制本身工作正常（位置、控制栏、弹幕层都对），但画面偏色且很暗。原因在 libmpv：它的鸿蒙输出用 sRGB 的 Vulkan 交换链（10 位）渲染，再用 `OH_NativeWindow_SetColorSpace`、`SetMetadataValue` 给窗口打上 BT.2020 PQ 和 HDR10 元数据。渲染服务里看到的缓冲区：格式 RGBA_1010102、元数据类型 HDR10、静态元数据齐全、HDR 白点亮度 1.0，但色域字段仍是 sRGB，系统没有按 HDR 合成。`target-colorspace-hint=yes` 不改变交换链的选择（分叉里自带的 `set_color` 回调取代了 libplacebo 的色彩空间协商）；换 OpenGL 上下文则初始化失败。
+- 所以 `Pref.ohosHdrOutput` 默认关闭，设置项不显示。
+
+下一步的方向：让硬件解码器直接送显到这个图层，不经过 libmpv 的渲染。这是鸿蒙上播放 HDR 视频的常规做法，HDR10、HLG、HDR Vivid 的元数据都由系统处理。cnoim 的 mpv 分叉里有现成的 `vo_ohcodec_embed`（提交 ec8b628「支持视频直通模式」，随后被 b1b1bc3 撤回，现在用的二进制对应撤回之后）。要用它就得从源码重新编译 libmpv，配方在参考仓库的 `tool/native_mpv/`。代价：直通模式下 libmpv 的着色器、截图、色调映射都不可用，只应在 HDR 视频上启用。
+
+HDR Vivid 的流：
+
+- 应用用网页端接口取流（`fnval=4048`、`qn=129`）。实测一个标为 HDR Vivid 的视频，返回的最高画质是 125（HDR 真彩，`hvc1`，HDR10），没有 129。
+- 在 `fnval` 上再加任何一位（8192 到 262144 逐个试过）接口都返回 -400。公开的接口文档里也没有 129 的取流说明。
+- 推断 HDR Vivid 只在客户端接口（gRPC 的 playurl，带设备信息）下发；仓库里有 `lib/grpc/bilibili/app/playurl/v1` 的协议定义，但上游没有用它取流。这条路还没有验证。
+
+### 3.13 原生顶栏和底栏：暂不做
 
 - 2.1 的做法能得到系统材质的外观，但要在 ArkTS 与 Flutter 之间同步显隐、裁剪、触摸，是那个仓库缺陷最集中的地方，而且要改动主页的骨架。
 - 目前用 Flutter 画的导航，功能完整。先把功能和系统集成做完，再评估是否值得做原生栏。
@@ -140,6 +160,8 @@
 ## 6. 调试方法
 
 - 正式包里 Dart 的未捕获异常不进系统日志，`print` 会进。定位启动问题时，在构建目录里临时给 `main()` 套一层把错误画到屏幕上的代码。
+- 渲染服务的状态：`hidumper -s RenderService -a RSTree` 看图层，`-a 'surfacenode <id>'` 看某个 surface 的缓冲区格式、色域、HDR 元数据。
+- libmpv 的详细日志：把 `PlayerConfiguration.logLevel` 调到 `.v` 并监听 `player.stream.log`。
 - 解码测试：临时每 2 秒打印 mpv 的 `hwdec-current`、丢帧数等属性。强制首选编码会写进手机上应用的设置，测完要清掉。
 - 自动点击：`uitest uiInput click` 每次约 1 秒；播放器的控制栏会自动隐藏，要先点一下视频、截一次图，再点按钮。
 
