@@ -55,7 +55,7 @@ import 'package:PiliPlus/utils/utils.dart';
 import 'package:archive/archive.dart' show getCrc32;
 import 'package:canvas_danmaku/canvas_danmaku.dart';
 import 'package:easy_debounce/easy_throttle.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart' show kDebugMode, ValueListenable;
 import 'package:flutter/services.dart'
     show DeviceOrientation, HapticFeedback, KeyDownEvent;
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -734,6 +734,14 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
 
   /// HDR 画中画结束时如果应用还在后台，按「后台播放」的设置决定是否停下：
   /// 小窗存在期间播放不随应用退到后台而暂停。
+  /// 「后台画中画」是在开始播放时登记的，那时 HDR 画面层往往还没接上。
+  /// 画面层接上或撤下后按当前的输出方式重新登记，否则会登记在另一条路径上。
+  void _onOhosHdrSurfaceChanged() {
+    if (_isAutoEnterPip && playerStatus.isPlaying && _isCurrVideoPage) {
+      enterPip(autoEnter: true);
+    }
+  }
+
   void ohosPauseUnlessHdrPipStarts() {
     Future.delayed(const Duration(milliseconds: 1500), _onOhosHdrPipChanged);
   }
@@ -967,6 +975,15 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
         hwdec: hwdec,
       ),
     );
+
+    if (PlatformUtils.isOhos) {
+      try {
+        // ignore: avoid_dynamic_calls
+        ((_videoController as dynamic).hdrSurfaceAttached
+                as ValueListenable<bool>)
+            .addListener(_onOhosHdrSurfaceChanged);
+      } catch (_) {}
+    }
 
     if (Platform.isAndroid) {
       // Avoid sizing the surface using mpv's idle window between media loads.
