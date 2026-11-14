@@ -1,0 +1,370 @@
+diff --git a/lib/common/widgets/flutter/text_field/cupertino/text_field.dart b/lib/common/widgets/flutter/text_field/cupertino/text_field.dart
+index 6ae9c7926..9db12f322 100644
+--- a/lib/common/widgets/flutter/text_field/cupertino/text_field.dart
++++ b/lib/common/widgets/flutter/text_field/cupertino/text_field.dart
+@@ -1157,6 +1157,7 @@ class CupertinoRichTextField extends StatefulWidget {
+             ) {
+               switch (defaultTargetPlatform) {
+                 case TargetPlatform.android:
++                case TargetPlatform.ohos:
+                 case TargetPlatform.iOS:
+                   return CupertinoTextMagnifier(
+                     controller: controller,
+@@ -1321,6 +1322,7 @@ class _CupertinoRichTextFieldState extends State<CupertinoRichTextField>
+       case TargetPlatform.windows:
+       case TargetPlatform.fuchsia:
+       case TargetPlatform.android:
++      case TargetPlatform.ohos:
+         if (cause == SelectionChangedCause.longPress) {
+           _editableText.bringIntoView(selection.extent);
+         }
+@@ -1330,6 +1332,7 @@ class _CupertinoRichTextFieldState extends State<CupertinoRichTextField>
+       case TargetPlatform.iOS:
+       case TargetPlatform.fuchsia:
+       case TargetPlatform.android:
++      case TargetPlatform.ohos:
+         break;
+       case TargetPlatform.macOS:
+       case TargetPlatform.linux:
+@@ -1549,6 +1552,7 @@ class _CupertinoRichTextFieldState extends State<CupertinoRichTextField>
+     switch (defaultTargetPlatform) {
+       case TargetPlatform.iOS:
+       case TargetPlatform.android:
++      case TargetPlatform.ohos:
+       case TargetPlatform.fuchsia:
+         textSelectionControls ??= cupertinoTextSelectionHandleControls;
+       case TargetPlatform.linux:
+diff --git a/lib/common/widgets/flutter/text_field/editable.dart b/lib/common/widgets/flutter/text_field/editable.dart
+index 4d616e705..a169aa6d8 100644
+--- a/lib/common/widgets/flutter/text_field/editable.dart
++++ b/lib/common/widgets/flutter/text_field/editable.dart
+@@ -1913,6 +1913,7 @@ class RenderEditable extends RenderBox
+           caretRect.height,
+         );
+       case TargetPlatform.android:
++      case TargetPlatform.ohos:
+       case TargetPlatform.fuchsia:
+       case TargetPlatform.linux:
+       case TargetPlatform.windows:
+@@ -2392,6 +2393,7 @@ class RenderEditable extends RenderBox
+             extentOffset: position.offset,
+           );
+         case TargetPlatform.android:
++        case TargetPlatform.ohos:
+           if (readOnly) {
+             if (previousWord == null) {
+               return TextSelection(
+@@ -2479,6 +2481,7 @@ class RenderEditable extends RenderBox
+           cursorHeight + 2,
+         );
+       case TargetPlatform.android:
++      case TargetPlatform.ohos:
+       case TargetPlatform.fuchsia:
+       case TargetPlatform.linux:
+       case TargetPlatform.windows:
+diff --git a/lib/common/widgets/flutter/text_field/editable_text.dart b/lib/common/widgets/flutter/text_field/editable_text.dart
+index 92658435e..f6a6b195e 100644
+--- a/lib/common/widgets/flutter/text_field/editable_text.dart
++++ b/lib/common/widgets/flutter/text_field/editable_text.dart
+@@ -1742,7 +1742,7 @@ class EditableText extends StatefulWidget {
+       return true;
+     }
+     return switch (defaultTargetPlatform) {
+-      TargetPlatform.android => false,
++      TargetPlatform.android || TargetPlatform.ohos => false,
+       TargetPlatform.iOS => false,
+       TargetPlatform.fuchsia => false,
+       TargetPlatform.linux => true,
+@@ -1871,6 +1871,7 @@ class EditableText extends StatefulWidget {
+         }
+       case TargetPlatform.macOS:
+       case TargetPlatform.android:
++      case TargetPlatform.ohos:
+       case TargetPlatform.fuchsia:
+       case TargetPlatform.linux:
+       case TargetPlatform.windows:
+@@ -1947,6 +1948,7 @@ class EditableText extends StatefulWidget {
+             return keyboardType;
+           }
+         case TargetPlatform.android:
++        case TargetPlatform.ohos:
+         case TargetPlatform.fuchsia:
+         case TargetPlatform.linux:
+         case TargetPlatform.windows:
+@@ -2426,6 +2428,7 @@ class EditableTextState extends State<EditableText>
+         return textEditingValue.text.isNotEmpty &&
+             textEditingValue.selection.isCollapsed;
+       case TargetPlatform.android:
++      case TargetPlatform.ohos:
+       case TargetPlatform.fuchsia:
+       case TargetPlatform.linux:
+       case TargetPlatform.windows:
+@@ -2462,6 +2465,7 @@ class EditableTextState extends State<EditableText>
+   bool get shareEnabled {
+     switch (defaultTargetPlatform) {
+       case TargetPlatform.android:
++      case TargetPlatform.ohos:
+       case TargetPlatform.iOS:
+         return !widget.obscureText &&
+             !textEditingValue.selection.isCollapsed &&
+@@ -2530,6 +2534,7 @@ class EditableTextState extends State<EditableText>
+         case TargetPlatform.windows:
+           break;
+         case TargetPlatform.android:
++        case TargetPlatform.ohos:
+         case TargetPlatform.fuchsia:
+           // Collapse the selection and hide the toolbar and handles.
+           userUpdateTextEditingValue(
+@@ -2691,6 +2696,7 @@ class EditableTextState extends State<EditableText>
+     if (cause == SelectionChangedCause.toolbar) {
+       switch (defaultTargetPlatform) {
+         case TargetPlatform.android:
++        case TargetPlatform.ohos:
+         case TargetPlatform.iOS:
+         case TargetPlatform.fuchsia:
+           break;
+@@ -2701,6 +2707,7 @@ class EditableTextState extends State<EditableText>
+       }
+       switch (defaultTargetPlatform) {
+         case TargetPlatform.android:
++        case TargetPlatform.ohos:
+         case TargetPlatform.fuchsia:
+         case TargetPlatform.linux:
+         case TargetPlatform.windows:
+@@ -4243,7 +4250,7 @@ class EditableTextState extends State<EditableText>
+   }
+ 
+   final bool _platformSupportsFadeOnScroll = switch (defaultTargetPlatform) {
+-    TargetPlatform.android || TargetPlatform.iOS => true,
++    TargetPlatform.android || TargetPlatform.ohos || TargetPlatform.iOS => true,
+     TargetPlatform.fuchsia ||
+     TargetPlatform.linux ||
+     TargetPlatform.macOS ||
+@@ -4824,6 +4831,7 @@ class EditableTextState extends State<EditableText>
+       case TargetPlatform.windows:
+       case TargetPlatform.fuchsia:
+       case TargetPlatform.android:
++      case TargetPlatform.ohos:
+         if (cause == SelectionChangedCause.drag) {
+           if (oldSelection.baseOffset != newSelection.baseOffset) {
+             bringIntoView(newSelection.base);
+@@ -7134,6 +7142,7 @@ class _EditableTextTapOutsideAction
+     // The focus dropping behavior is only present on desktop platforms.
+     switch (defaultTargetPlatform) {
+       case TargetPlatform.android:
++      case TargetPlatform.ohos:
+       case TargetPlatform.iOS:
+       case TargetPlatform.fuchsia:
+         // On mobile platforms, we don't unfocus on touch events unless they're
+diff --git a/lib/common/widgets/flutter/text_field/text_field.dart b/lib/common/widgets/flutter/text_field/text_field.dart
+index 33f2da0de..ece5ff3d8 100644
+--- a/lib/common/widgets/flutter/text_field/text_field.dart
++++ b/lib/common/widgets/flutter/text_field/text_field.dart
+@@ -952,6 +952,7 @@ class RichTextField extends StatefulWidget {
+           editableTextState: editableTextState,
+         );
+       case TargetPlatform.android:
++      case TargetPlatform.ohos:
+       case TargetPlatform.fuchsia:
+       case TargetPlatform.linux:
+       case TargetPlatform.windows:
+@@ -1524,6 +1525,7 @@ class RichTextFieldState extends State<RichTextField>
+       case TargetPlatform.windows:
+       case TargetPlatform.fuchsia:
+       case TargetPlatform.android:
++      case TargetPlatform.ohos:
+         if (cause == SelectionChangedCause.longPress) {
+           _editableText?.bringIntoView(selection.extent);
+         }
+@@ -1533,6 +1535,7 @@ class RichTextFieldState extends State<RichTextField>
+       case TargetPlatform.iOS:
+       case TargetPlatform.fuchsia:
+       case TargetPlatform.android:
++      case TargetPlatform.ohos:
+         break;
+       case TargetPlatform.macOS:
+       case TargetPlatform.linux:
+@@ -1676,6 +1679,7 @@ class RichTextFieldState extends State<RichTextField>
+               widget.spellCheckConfiguration,
+             );
+       case TargetPlatform.android:
++      case TargetPlatform.ohos:
+       case TargetPlatform.fuchsia:
+       case TargetPlatform.linux:
+       case TargetPlatform.windows:
+@@ -1749,6 +1753,7 @@ class RichTextFieldState extends State<RichTextField>
+         };
+ 
+       case TargetPlatform.android:
++      case TargetPlatform.ohos:
+       case TargetPlatform.fuchsia:
+         forcePressEnabled = false;
+         textSelectionControls ??= materialTextSelectionHandleControls;
+diff --git a/lib/common/widgets/flutter/text_field/text_selection.dart b/lib/common/widgets/flutter/text_field/text_selection.dart
+index 9492e41f1..1c8d9740a 100644
+--- a/lib/common/widgets/flutter/text_field/text_selection.dart
++++ b/lib/common/widgets/flutter/text_field/text_selection.dart
+@@ -100,6 +100,7 @@ class TextSelectionGestureDetectorBuilder {
+   void _showMagnifierIfSupportedByPlatform(Offset positionToShow) {
+     switch (defaultTargetPlatform) {
+       case TargetPlatform.android:
++      case TargetPlatform.ohos:
+       case TargetPlatform.iOS:
+         editableText.showMagnifier(positionToShow);
+       case TargetPlatform.fuchsia:
+@@ -117,6 +118,7 @@ class TextSelectionGestureDetectorBuilder {
+ 
+     switch (defaultTargetPlatform) {
+       case TargetPlatform.android:
++      case TargetPlatform.ohos:
+       case TargetPlatform.iOS:
+         editableText.hideMagnifier();
+       case TargetPlatform.fuchsia:
+@@ -370,6 +372,7 @@ class TextSelectionGestureDetectorBuilder {
+         _isShiftPressed && renderEditable.selection?.baseOffset != null;
+     switch (defaultTargetPlatform) {
+       case TargetPlatform.android:
++      case TargetPlatform.ohos:
+         if (editableText.widget.stylusHandwritingEnabled) {
+           final bool stylusEnabled = switch (kind) {
+             PointerDeviceKind.stylus || PointerDeviceKind.invertedStylus =>
+@@ -518,6 +521,7 @@ class TextSelectionGestureDetectorBuilder {
+         break;
+       // On desktop platforms the selection is set on tap down.
+       case TargetPlatform.android:
++      case TargetPlatform.ohos:
+         editableText.hideToolbar(false);
+         if (isShiftPressedValid) {
+           _extendSelection(details.globalPosition, SelectionChangedCause.tap);
+@@ -680,6 +684,7 @@ class TextSelectionGestureDetectorBuilder {
+           editableText.updateFloatingCursor(cursorPoint);
+         }
+       case TargetPlatform.android:
++      case TargetPlatform.ohos:
+       case TargetPlatform.fuchsia:
+       case TargetPlatform.linux:
+       case TargetPlatform.windows:
+@@ -745,6 +750,7 @@ class TextSelectionGestureDetectorBuilder {
+           editableText.updateFloatingCursor(cursorPoint);
+         }
+       case TargetPlatform.android:
++      case TargetPlatform.ohos:
+       case TargetPlatform.fuchsia:
+       case TargetPlatform.linux:
+       case TargetPlatform.windows:
+@@ -810,6 +816,7 @@ class TextSelectionGestureDetectorBuilder {
+           editableText.showToolbar();
+         }
+       case TargetPlatform.android:
++      case TargetPlatform.ohos:
+       case TargetPlatform.fuchsia:
+       case TargetPlatform.linux:
+       case TargetPlatform.windows:
+@@ -991,6 +998,7 @@ class TextSelectionGestureDetectorBuilder {
+     } else {
+       switch (defaultTargetPlatform) {
+         case TargetPlatform.android:
++        case TargetPlatform.ohos:
+         case TargetPlatform.fuchsia:
+         case TargetPlatform.iOS:
+         case TargetPlatform.macOS:
+@@ -1051,6 +1059,7 @@ class TextSelectionGestureDetectorBuilder {
+         case TargetPlatform.macOS:
+           _expandSelection(details.globalPosition, SelectionChangedCause.drag);
+         case TargetPlatform.android:
++        case TargetPlatform.ohos:
+         case TargetPlatform.fuchsia:
+         case TargetPlatform.linux:
+         case TargetPlatform.windows:
+@@ -1073,6 +1082,7 @@ class TextSelectionGestureDetectorBuilder {
+             case null:
+           }
+         case TargetPlatform.android:
++        case TargetPlatform.ohos:
+         case TargetPlatform.fuchsia:
+           switch (details.kind) {
+             case PointerDeviceKind.mouse:
+@@ -1173,6 +1183,7 @@ class TextSelectionGestureDetectorBuilder {
+           3) {
+         switch (defaultTargetPlatform) {
+           case TargetPlatform.android:
++          case TargetPlatform.ohos:
+           case TargetPlatform.fuchsia:
+           case TargetPlatform.iOS:
+             switch (details.kind) {
+@@ -1236,6 +1247,7 @@ class TextSelectionGestureDetectorBuilder {
+           }
+           return;
+         case TargetPlatform.android:
++        case TargetPlatform.ohos:
+         case TargetPlatform.fuchsia:
+           // With a precise pointer device, such as a mouse, trackpad, or stylus,
+           // the drag will select the text spanning the origin of the drag to the end of the drag.
+@@ -1544,6 +1556,7 @@ class _TextSelectionGestureDetectorState
+   static int _getEffectiveConsecutiveTapCount(int rawCount) {
+     switch (defaultTargetPlatform) {
+       case TargetPlatform.android:
++      case TargetPlatform.ohos:
+       case TargetPlatform.fuchsia:
+       case TargetPlatform.linux:
+         // From observation, these platform's reset their tap count to 0 when
+@@ -1686,6 +1699,7 @@ class _TextSelectionGestureDetectorState
+         widget.onDragSelectionEnd != null) {
+       switch (defaultTargetPlatform) {
+         case TargetPlatform.android:
++        case TargetPlatform.ohos:
+         case TargetPlatform.fuchsia:
+         case TargetPlatform.iOS:
+           gestures[TapAndHorizontalDragGestureRecognizer] =
+@@ -2341,6 +2355,7 @@ class TextSelectionOverlay {
+           extentOffset: position.offset,
+         );
+       case TargetPlatform.android:
++      case TargetPlatform.ohos:
+       case TargetPlatform.fuchsia:
+       case TargetPlatform.linux:
+       case TargetPlatform.windows:
+@@ -2486,6 +2501,7 @@ class TextSelectionOverlay {
+           extentOffset: position.offset,
+         );
+       case TargetPlatform.android:
++      case TargetPlatform.ohos:
+       case TargetPlatform.fuchsia:
+       case TargetPlatform.linux:
+       case TargetPlatform.windows:
+@@ -2996,6 +3012,7 @@ class SelectionOverlay {
+       if (_isDraggingEndHandle || _isDraggingStartHandle) {
+         switch (defaultTargetPlatform) {
+           case TargetPlatform.android:
++          case TargetPlatform.ohos:
+             HapticFeedback.selectionClick();
+           case TargetPlatform.fuchsia:
+           case TargetPlatform.iOS:
+diff --git a/lib/common/widgets/flutter/vertical_slider.dart b/lib/common/widgets/flutter/vertical_slider.dart
+index f678eac02..cbe180951 100644
+--- a/lib/common/widgets/flutter/vertical_slider.dart
++++ b/lib/common/widgets/flutter/vertical_slider.dart
+@@ -800,6 +800,7 @@ class _VerticalSliderState extends State<VerticalSlider>
+           final ThemeData theme = Theme.of(context);
+           switch (theme.platform) {
+             case TargetPlatform.android:
++            case TargetPlatform.ohos:
+             case TargetPlatform.fuchsia:
+             case TargetPlatform.linux:
+             case TargetPlatform.windows:
+@@ -964,6 +965,7 @@ class _VerticalSliderState extends State<VerticalSlider>
+     VoidCallback? handleDidGainAccessibilityFocus;
+     switch (theme.platform) {
+       case TargetPlatform.android:
++      case TargetPlatform.ohos:
+       case TargetPlatform.fuchsia:
+       case TargetPlatform.iOS:
+       case TargetPlatform.linux:
+@@ -1550,6 +1552,7 @@ class _RenderSlider extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
+         // Matches iOS implementation of material slider.
+         return 0.1;
+       case TargetPlatform.android:
++      case TargetPlatform.ohos:
+       case TargetPlatform.fuchsia:
+       case TargetPlatform.linux:
+       case TargetPlatform.windows:
