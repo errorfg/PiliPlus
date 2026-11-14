@@ -1,8 +1,87 @@
 # 鸿蒙构建时并入 pubspec.yaml 的依赖（只含 dependencies 与 dependency_overrides）。
 # 同名条目替换 pubspec.yaml 里的条目。其他平台的构建不读取本文件。
+# dependencies：只含鸿蒙实现的包，面向应用的包仍用 pubspec.yaml 里的版本。
+# dependency_overrides：鸿蒙实现写在面向应用的包里，整包换成鸿蒙分支。
 dependencies:
   path_provider_ohos:
     git:
       url: https://gitcode.com/CPF-Flutter/flutter_packages.git
       path: packages/path_provider/path_provider_ohos
       ref: a0e6cebef8ca58767fcd6d2afdedc3fa1b5a88c1
+  url_launcher_ohos:
+    git:
+      url: https://gitcode.com/CPF-Flutter/flutter_packages.git
+      path: packages/url_launcher/url_launcher_ohos
+      ref: a0e6cebef8ca58767fcd6d2afdedc3fa1b5a88c1
+  image_picker_ohos:
+    git:
+      url: https://gitcode.com/CPF-Flutter/flutter_packages.git
+      path: packages/image_picker/image_picker_ohos
+      ref: a0e6cebef8ca58767fcd6d2afdedc3fa1b5a88c1
+  permission_handler_ohos:
+    git:
+      url: https://gitcode.com/CPF-Flutter/flutter_permission_handler.git
+      path: permission_handler_ohos
+      ref: 07aab6eb3b0999f5892a9f383a9afd391e47cce3
+  flutter_inappwebview_ohos:
+    git:
+      url: https://gitcode.com/CPF-Flutter/flutter_inappwebview.git
+      path: flutter_inappwebview_ohos
+      ref: eb931a01a060f80bad6175d8238300f7b855ea7e
+dependency_overrides:
+  battery_plus:
+    git:
+      url: https://gitcode.com/CPF-Flutter/flutter_plus_plugins.git
+      path: packages/battery_plus/battery_plus
+      ref: 247dec1a66da0c0b8b368f79efe63783421bdd27
+  connectivity_plus:
+    git:
+      url: https://gitcode.com/CPF-Flutter/flutter_plus_plugins.git
+      path: packages/connectivity_plus/connectivity_plus
+      ref: 247dec1a66da0c0b8b368f79efe63783421bdd27
+  device_info_plus:
+    git:
+      url: https://gitcode.com/CPF-Flutter/flutter_plus_plugins.git
+      path: packages/device_info_plus/device_info_plus
+      ref: 247dec1a66da0c0b8b368f79efe63783421bdd27
+  package_info_plus:
+    git:
+      url: https://gitcode.com/CPF-Flutter/flutter_plus_plugins.git
+      path: packages/package_info_plus/package_info_plus
+      ref: 247dec1a66da0c0b8b368f79efe63783421bdd27
+  share_plus:
+    git:
+      url: https://gitcode.com/CPF-Flutter/flutter_plus_plugins.git
+      path: packages/share_plus/share_plus
+      ref: 247dec1a66da0c0b8b368f79efe63783421bdd27
+  app_links:
+    git:
+      url: https://gitcode.com/CPF-Flutter/fluttertpc_app_links.git
+      path: app_links
+      ref: a93baf6700d5f3cefd36c9ad89507413ca955715
+  audio_service:
+    git:
+      url: https://gitcode.com/CPF-Flutter/fluttertpc_audio_service.git
+      path: audio_service
+      ref: afc59ea015fb8d2eca474860ff5074d10476b182
+  audio_session:
+    git:
+      url: https://gitcode.com/CPF-Flutter/flutter_audio_session.git
+      ref: ec31be07f5b413e66e0eb8329cffe88cbb0fddf0
+  wakelock_plus:
+    git:
+      url: https://gitcode.com/CPF-Flutter/fluttertpc_wakelock_plus.git
+      path: wakelock_plus
+      ref: a5ae85fe13d7b92ad9d48bdabd69e4117f665be6
+  dynamic_color:
+    git:
+      url: https://gitcode.com/CPF-Flutter/fluttertpc_dynamic_color.git
+      path: packages/dynamic_color
+      ref: 2f349bd38ace56020e939b2bf263da6c4e971993
+  flutter_inappwebview_platform_interface:
+    git:
+      url: https://gitcode.com/CPF-Flutter/flutter_inappwebview.git
+      path: flutter_inappwebview_platform_interface
+      ref: eb931a01a060f80bad6175d8238300f7b855ea7e
+  # share_plus 的鸿蒙分支把 path_provider 指向 git 上的旧分支，这里改回 pub.dev 的版本
+  path_provider: ^2.1.5
