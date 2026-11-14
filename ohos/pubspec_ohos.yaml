@@ -1,0 +1,8 @@
+# 鸿蒙构建时并入 pubspec.yaml 的依赖（只含 dependencies 与 dependency_overrides）。
+# 同名条目替换 pubspec.yaml 里的条目。其他平台的构建不读取本文件。
+dependencies:
+  path_provider_ohos:
+    git:
+      url: https://gitcode.com/CPF-Flutter/flutter_packages.git
+      path: packages/path_provider/path_provider_ohos
+      ref: a0e6cebef8ca58767fcd6d2afdedc3fa1b5a88c1
