@@ -75,7 +75,13 @@
   - AV1、VP9、VP8、MPEG2：没有硬件解码器，只有系统软件解码器（`OH.Media.Codec.Decoder.Video.AV1` 等）。
 - 官方文档《AVCodec支持的格式》把 AV1、VP9、VP8 标为 API 23 起支持，并写明「解码能力和设备强相关」，要用上面的接口查询，没有列出机型。华为开发者论坛的《一文读懂 HarmonyOS 6.1 带来的十大 API 重要升级》说得更具体：这一批新增的是「视频软解码能力」。
 - FFmpeg 的鸿蒙解码封装来自 FFmpeg 上游的提交 e7f44f8c「avcodec/ohdec: Add h264/hevc OpenHarmony decoders」（Zhao Zhili，2025-07，进入 FFmpeg 8.0，Changelog 里是一行「OpenHarmony hardware decoder/encoder」），提交说明只有标题，没有解释为什么只做这两种；cnoim 的分叉在它上面加了零拷贝、智能流畅、可变帧率，没有增加编码种类。`libavcodec/ohdec.c` 只声明 `h264_oh`、`hevc_oh` 两个视频解码器。
-- 所以 AV1 走 libmpv 自带的 dav1d 软解。系统自带的 AV1 软件解码器没有被用到，也没有比较过两者的性能。
+- 所以 AV1 走 libmpv 自带的 dav1d 软解，系统自带的 AV1 软件解码器没有被用到。两者在 Mate XTs 上的对比（2026-11-15）：
+  - 方法：同一个文件、不限速解码到内存，应用在前台、屏幕常亮。片源是 Big Buck Bunny 4K 60 帧的 20 秒片段（1200 帧），用 SVT-AV1 编成 8 位的 1080p60（3.5 Mbps）和 2160p60（8.8 Mbps）。系统解码器用 `OH_AVSource`/`OH_AVDemuxer` 解封装，`OH_VideoDecoder_CreateByName("OH.Media.Codec.Decoder.Video.AV1")` 同步模式输出 NV12 缓冲区；dav1d 用 libmpv（`vo=null`、`untimed=yes`、`hwdec=no`、不开音频）。脚本在本机 `tools/diag_av1bench.py` 与 `tools/av1bench_run.sh`，原始输出在 `av1-bench/results/run1/`。
+  - 系统解码器的能力范围是宽、高各 4–1920，2160p 的文件在 `Configure` 一步返回 `AV_ERR_INVALID_VAL`，即不能解 4K。
+  - 1080p60：系统解码器两轮分别是 25.3 和 30.5 帧每秒，低于片源的 60 帧每秒，不能实时播放；解码发生在系统进程 `av_codec_service` 里，采样到的占用是 1.1–1.4 个核，折合每 1200 帧约 50 秒处理器时间。dav1d 默认线程数两轮是 138 和 134 帧每秒（处理器时间约 27 秒），单线程是 209 帧每秒（处理器时间约 6 秒）。
+  - 2160p60（只有 dav1d）：默认线程数 43–44 帧每秒，单线程 56 帧每秒，2 线程 50 帧每秒，4 线程 26 帧每秒，都低于 60。
+  - dav1d 的线程数越多，耗时不减反增，处理器时间成倍增加（1080p：1/2/4 线程为 5.7/6.6/14.9 秒，处理器时间 6/12/31 秒）。原因没有查证；一种未经验证的推测是多个低负载的工作线程被系统调度到小核或低频率上。这是不限速解码下的现象，按帧率播放时是否相同没有测过。
+  - 结论：这台设备上系统 AV1 软件解码器在速度、支持的分辨率和处理器开销三项上都不如 dav1d，没有理由换用。
 
 ### 3.6 不提供动态取色
 
