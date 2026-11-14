@@ -1,4 +1,5 @@
 import 'package:PiliPlus/common/assets.dart';
+import 'package:PiliPlus/common/widgets/occlusion_avoidance.dart';
 import 'package:PiliPlus/models_new/video/video_detail/episode.dart';
 import 'package:PiliPlus/models_new/video/video_detail/page.dart';
 import 'package:PiliPlus/pages/video/introduction/ugc/controller.dart';
@@ -178,6 +179,7 @@ class _PagePanelState extends State<PagePanel> {
                 ),
               ),
             ),
+            const OcclusionGap(),
           ],
         ),
       );

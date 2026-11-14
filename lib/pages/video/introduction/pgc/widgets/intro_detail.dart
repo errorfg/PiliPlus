@@ -1,4 +1,5 @@
 import 'package:PiliPlus/common/widgets/keep_alive_wrapper.dart';
+import 'package:PiliPlus/common/widgets/occlusion_avoidance.dart';
 import 'package:PiliPlus/common/widgets/scroll_physics.dart'
     show tabBarScrollPhysics;
 import 'package:PiliPlus/common/widgets/selection_text.dart';
@@ -82,6 +83,7 @@ class _IntroDetailState extends State<PgcIntroPanel>
                 onPressed: Get.back,
               ),
               const SizedBox(width: 2),
+              const OcclusionGap(),
             ],
           ),
           Expanded(
@@ -125,7 +127,7 @@ class _IntroDetailState extends State<PgcIntroPanel>
         top: 14,
         bottom: MediaQuery.viewPaddingOf(context).bottom + 100,
       ),
-      children: [
+      children: AvoidOcclusion.all([
         SelectionText(
           widget.item.title!,
           style: const TextStyle(fontSize: 16),
@@ -207,7 +209,7 @@ class _IntroDetailState extends State<PgcIntroPanel>
                 .toList(),
           ),
         ],
-      ],
+      ]),
     );
   }
 }

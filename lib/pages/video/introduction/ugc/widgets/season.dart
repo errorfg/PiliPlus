@@ -1,4 +1,5 @@
 import 'package:PiliPlus/common/assets.dart';
+import 'package:PiliPlus/common/widgets/occlusion_avoidance.dart';
 import 'package:PiliPlus/models_new/video/video_detail/episode.dart';
 import 'package:PiliPlus/models_new/video/video_detail/ugc_season.dart';
 import 'package:PiliPlus/pages/video/introduction/ugc/controller.dart';
@@ -104,6 +105,7 @@ class _SeasonPanelState extends State<SeasonPanel> {
                   size: 13,
                   semanticLabel: '查看',
                 ),
+                const OcclusionGap(),
               ],
             ),
           ),

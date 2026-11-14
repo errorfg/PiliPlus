@@ -2,6 +2,7 @@ import 'package:PiliPlus/common/style.dart';
 import 'package:PiliPlus/common/widgets/badge.dart';
 import 'package:PiliPlus/common/widgets/image/image_save.dart';
 import 'package:PiliPlus/common/widgets/image/network_img_layer.dart';
+import 'package:PiliPlus/common/widgets/occlusion_avoidance.dart';
 import 'package:PiliPlus/common/widgets/progress_bar/video_progress_indicator.dart';
 import 'package:PiliPlus/common/widgets/stat/stat.dart';
 import 'package:PiliPlus/common/widgets/video_popup_menu.dart';
@@ -35,7 +36,9 @@ class VideoCardH extends StatelessWidget {
   );
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => AvoidOcclusion(child: _build(context));
+
+  Widget _build(BuildContext context) {
     final theme = Theme.of(context);
     return Material(
       type: .transparency,
@@ -196,18 +199,28 @@ class VideoCardH extends StatelessWidget {
           ),
           if (videoItem.isLive != true) ...[
             const SizedBox(height: 3),
-            Row(
-              spacing: 8,
-              children: [
-                StatWidget(
-                  type: .play,
-                  value: videoItem.stat.view,
+            // Smaller where the card is too narrow for them beside the menu
+            // button, as next to the status bar of iPhone Duo.
+            Padding(
+              padding: const .only(right: 29),
+              child: FittedBox(
+                fit: .scaleDown,
+                alignment: .centerLeft,
+                child: Row(
+                  spacing: 8,
+                  mainAxisSize: .min,
+                  children: [
+                    StatWidget(
+                      type: .play,
+                      value: videoItem.stat.view,
+                    ),
+                    StatWidget(
+                      type: .danmaku,
+                      value: videoItem.stat.danmu,
+                    ),
+                  ],
                 ),
-                StatWidget(
-                  type: .danmaku,
-                  value: videoItem.stat.danmu,
-                ),
-              ],
+              ),
             ),
           ],
         ],

@@ -17,6 +17,7 @@
 
 import 'dart:math' as math;
 
+import 'package:PiliPlus/common/widgets/occlusion_avoidance.dart';
 import 'package:flutter/foundation.dart' show clampDouble;
 import 'package:flutter/rendering.dart'
     show RenderSliverSingleBoxAdapter, SliverGeometry, ScrollDirection;
@@ -38,7 +39,9 @@ class SliverFloatingHeaderWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return _SliverFloatingHeaderWidget(
       backgroundColor: backgroundColor,
-      child: _SliverFloatingHeaderScroll(child: child),
+      child: _SliverFloatingHeaderScroll(
+        child: AvoidOcclusion(pinned: true, child: child),
+      ),
     );
   }
 }

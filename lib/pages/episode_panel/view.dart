@@ -7,6 +7,7 @@ import 'package:PiliPlus/common/widgets/button/icon_button.dart';
 import 'package:PiliPlus/common/widgets/image/image_save.dart';
 import 'package:PiliPlus/common/widgets/image/network_img_layer.dart';
 import 'package:PiliPlus/common/widgets/keep_alive_wrapper.dart';
+import 'package:PiliPlus/common/widgets/occlusion_avoidance.dart';
 import 'package:PiliPlus/common/widgets/scroll_physics.dart'
     show tabBarScrollPhysics;
 import 'package:PiliPlus/common/widgets/stat/stat.dart';
@@ -407,7 +408,7 @@ class _EpisodePanelState extends State<EpisodePanel>
     Widget child;
     child = SliverVariedExtentList.builder(
       itemCount: episodes.length,
-      itemBuilder: (context, index) {
+      itemBuilder: AvoidOcclusion.rows((context, index) {
         final episode = episodes[index];
         final isCurrItem = isCurrTab && index == _itemIndex();
         Widget episodeItem = _buildEpisodeItem(
@@ -438,7 +439,7 @@ class _EpisodePanelState extends State<EpisodePanel>
           );
         }
         return episodeItem;
-      },
+      }),
       itemExtentBuilder: (index, _) => calcItemHeight(episodes[index]),
     );
 
@@ -807,6 +808,7 @@ class _EpisodePanelState extends State<EpisodePanel>
             icon: const Icon(Icons.close),
             onPressed: Get.back,
           ),
+        const OcclusionGap(),
       ],
     ),
   );

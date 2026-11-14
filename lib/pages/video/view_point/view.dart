@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:PiliPlus/common/style.dart';
 import 'package:PiliPlus/common/widgets/button/icon_button.dart';
 import 'package:PiliPlus/common/widgets/image/network_img_layer.dart';
+import 'package:PiliPlus/common/widgets/occlusion_avoidance.dart';
 import 'package:PiliPlus/common/widgets/progress_bar/segment_progress_bar.dart';
 import 'package:PiliPlus/common/widgets/scaffold/simple_scaffold.dart';
 import 'package:PiliPlus/pages/common/slide/common_slide_page.dart';
@@ -104,6 +105,7 @@ class _ViewPointsPageState extends State<ViewPointsPage>
               onPressed: Get.back,
             ),
             const SizedBox(width: 16),
+            const OcclusionGap(),
           ],
         ),
       ),
@@ -127,9 +129,11 @@ class _ViewPointsPageState extends State<ViewPointsPage>
             itemCount: videoDetailController.viewPointList.length,
             itemBuilder: (context, index) {
               final segment = videoDetailController.viewPointList[index];
-              return Padding(
-                padding: const .only(bottom: 2),
-                child: _buildItem(segment, itemIndex == index),
+              return AvoidOcclusion(
+                child: Padding(
+                  padding: const .only(bottom: 2),
+                  child: _buildItem(segment, itemIndex == index),
+                ),
               );
             },
           ),

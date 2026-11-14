@@ -7,6 +7,7 @@ import 'package:PiliPlus/common/widgets/custom_icon.dart';
 import 'package:PiliPlus/common/widgets/flutter/pop_scope.dart';
 import 'package:PiliPlus/common/widgets/image/network_img_layer.dart';
 import 'package:PiliPlus/common/widgets/keep_alive_wrapper.dart';
+import 'package:PiliPlus/common/widgets/occlusion_avoidance.dart';
 import 'package:PiliPlus/common/widgets/route_aware_mixin.dart';
 import 'package:PiliPlus/common/widgets/scaffold/mini_scaffold.dart';
 import 'package:PiliPlus/common/widgets/scaffold/simple_scaffold.dart';
@@ -62,6 +63,7 @@ import 'package:PiliPlus/utils/android/bindings.g.dart';
 import 'package:PiliPlus/utils/extension/scroll_controller_ext.dart';
 import 'package:PiliPlus/utils/extension/theme_ext.dart';
 import 'package:PiliPlus/utils/image_utils.dart';
+import 'package:PiliPlus/utils/ios/reserved_regions.dart';
 import 'package:PiliPlus/utils/max_screen_size.dart';
 import 'package:PiliPlus/utils/mobile_observer.dart';
 import 'package:PiliPlus/utils/num_utils.dart';
@@ -147,6 +149,8 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
   @override
   void initState() {
     super.initState();
+    ReservedRegions.observe();
+    ReservedRegions.regions.addListener(_onReservedRegionsChanged);
 
     videoDetailController = Get.put(VideoDetailController(), tag: heroTag);
 
@@ -334,6 +338,7 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
 
   @override
   void dispose() {
+    ReservedRegions.regions.removeListener(_onReservedRegionsChanged);
     plPlayerController
       ?..removeStatusLister(playerListener)
       ..removePositionListener(positionListener);
@@ -867,7 +872,10 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
                     key: videoDetailController.childKey,
                     body: Column(
                       children: [
-                        buildTabBar(showIntro: false, endInset: _tabBarEndInset),
+                        buildTabBar(
+                          showIntro: false,
+                          endInset: _tabBarEndInset,
+                        ),
                         Expanded(
                           child: tabBarView(
                             controller: videoDetailController.tabCtr,
@@ -1262,10 +1270,37 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
   late EdgeInsets padding;
   late double _stripWidth;
 
+  void _onReservedRegionsChanged() {
+    if (mounted) setState(() {});
+  }
+
+  /// The status bar the page draws under, at the top of the strip iOS keeps
+  /// for its vertical bars; what it covers at rest keeps clear of it, see
+  /// [AvoidOcclusion]. iOS reports it in points, whatever the UI is scaled by.
+  Rect? get _statusBar {
+    final scale = videoDetailController.uiScale;
+    return statusBarInStrip(
+      regions: [
+        for (final region in ReservedRegions.regions.value)
+          Rect.fromLTRB(
+            region.left / scale,
+            region.top / scale,
+            region.right / scale,
+            region.bottom / scale,
+          ),
+      ],
+      size: Size(maxWidth, maxHeight),
+      stripWidth: _stripWidth,
+    );
+  }
+
   /// Keeps the buttons of a tab bar at the top of the page clear of the status
   /// bar, which the setting to remove the safe area hides.
-  double get _tabBarEndInset =>
-      videoDetailController.removeSafeArea ? 0 : _stripWidth;
+  double get _tabBarEndInset {
+    if (videoDetailController.removeSafeArea) return 0;
+    final statusBar = _statusBar;
+    return statusBar == null ? _stripWidth : maxWidth - statusBar.left;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1297,6 +1332,7 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
         child: child,
       );
     }
+    child = OcclusionScope(occlusion: _statusBar, child: child);
     return videoDetailController.plPlayerController.darkVideoPage
         ? Theme(data: theme, child: child)
         : child;
@@ -1765,15 +1801,19 @@ class _VideoDetailPageVState extends State<VideoDetailPageV>
             padding: const .only(left: 12, top: 8, right: 12),
             child: Builder(
               builder: (context) {
-                return pgc.SeasonPanel(
-                  pgcController: pgcIntroController,
-                  onSeasonChanged: () {
-                    if (context.mounted) (context as Element).markNeedsBuild();
-                    final introState = videoIntroKey.currentState;
-                    if (introState != null && introState.mounted) {
-                      introState.setState(() {});
-                    }
-                  },
+                return AvoidOcclusion(
+                  child: pgc.SeasonPanel(
+                    pgcController: pgcIntroController,
+                    onSeasonChanged: () {
+                      if (context.mounted) {
+                        (context as Element).markNeedsBuild();
+                      }
+                      final introState = videoIntroKey.currentState;
+                      if (introState != null && introState.mounted) {
+                        introState.setState(() {});
+                      }
+                    },
+                  ),
                 );
               },
             ),

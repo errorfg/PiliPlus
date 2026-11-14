@@ -6,6 +6,7 @@ import 'package:PiliPlus/common/widgets/dialog/dialog.dart';
 import 'package:PiliPlus/common/widgets/flutter/refresh_indicator.dart';
 import 'package:PiliPlus/common/widgets/image/image_save.dart';
 import 'package:PiliPlus/common/widgets/image/network_img_layer.dart';
+import 'package:PiliPlus/common/widgets/occlusion_avoidance.dart';
 import 'package:PiliPlus/common/widgets/stat/stat.dart';
 import 'package:PiliPlus/models/common/badge_type.dart';
 import 'package:PiliPlus/models/common/stat_type.dart';
@@ -120,6 +121,7 @@ class _MediaListPanelState extends State<MediaListPanel>
                   onPressed: Get.back,
                 ),
                 const SizedBox(width: 14),
+                const OcclusionGap(),
               ],
             ),
           ),
@@ -162,7 +164,9 @@ class _MediaListPanelState extends State<MediaListPanel>
                 }
                 final item = widget.mediaList[index];
                 final isCurr = item.bvid == widget.bvid;
-                return _buildItem(index, item, isCurr, showDelBtn);
+                return AvoidOcclusion(
+                  child: _buildItem(index, item, isCurr, showDelBtn),
+                );
               },
             ),
           ),

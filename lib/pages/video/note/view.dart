@@ -3,6 +3,7 @@ import 'package:PiliPlus/common/sliver_single_child_delegate.dart';
 import 'package:PiliPlus/common/widgets/flutter/refresh_indicator.dart';
 import 'package:PiliPlus/common/widgets/image/network_img_layer.dart';
 import 'package:PiliPlus/common/widgets/loading_widget/http_error.dart';
+import 'package:PiliPlus/common/widgets/occlusion_avoidance.dart';
 import 'package:PiliPlus/common/widgets/scaffold/mini_scaffold.dart';
 import 'package:PiliPlus/http/loading_state.dart';
 import 'package:PiliPlus/models/common/image_type.dart';
@@ -88,6 +89,7 @@ class _NoteListPageState extends State<NoteListPage>
                     onPressed: Get.back,
                   ),
                   const SizedBox(width: 2),
+                  const OcclusionGap(),
                 ],
               ),
             ),
@@ -188,7 +190,7 @@ class _NoteListPageState extends State<NoteListPage>
               if (index == response.length - 1) {
                 _controller.onLoadMore();
               }
-              return _itemWidget(response[index]);
+              return AvoidOcclusion(child: _itemWidget(response[index]));
             },
             itemCount: response.length,
             separatorBuilder: (context, index) => divider,

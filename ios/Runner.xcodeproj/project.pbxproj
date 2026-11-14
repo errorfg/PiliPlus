@@ -14,6 +14,7 @@
 		A6C2F8E92FCB1A0000C0D3E1 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6C2F8E82FCB1A0000C0D3E1 /* SceneDelegate.swift */; };
 		B7D3A9F12FCB1A0000C0D3E1 /* PipPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7D3A9F02FCB1A0000C0D3E1 /* PipPlugin.swift */; };
 		7A1E5C2F2EA0000100D4A1B2 /* NativeGlassView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1E5C2E2EA0000100D4A1B2 /* NativeGlassView.swift */; };
+		7A1E5C312EA0000100D4A1B2 /* ReservedRegionsPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1E5C302EA0000100D4A1B2 /* ReservedRegionsPlugin.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
@@ -45,6 +46,7 @@
 		A6C2F8E82FCB1A0000C0D3E1 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		B7D3A9F02FCB1A0000C0D3E1 /* PipPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipPlugin.swift; sourceTree = "<group>"; };
 		7A1E5C2E2EA0000100D4A1B2 /* NativeGlassView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeGlassView.swift; sourceTree = "<group>"; };
+		7A1E5C302EA0000100D4A1B2 /* ReservedRegionsPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReservedRegionsPlugin.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		9740EEB31CF90195004384FC /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
@@ -118,6 +120,7 @@
 				A6C2F8E82FCB1A0000C0D3E1 /* SceneDelegate.swift */,
 				B7D3A9F02FCB1A0000C0D3E1 /* PipPlugin.swift */,
 				7A1E5C2E2EA0000100D4A1B2 /* NativeGlassView.swift */,
+				7A1E5C302EA0000100D4A1B2 /* ReservedRegionsPlugin.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 			);
 			path = Runner;
@@ -305,6 +308,7 @@
 				A6C2F8E92FCB1A0000C0D3E1 /* SceneDelegate.swift in Sources */,
 				B7D3A9F12FCB1A0000C0D3E1 /* PipPlugin.swift in Sources */,
 				7A1E5C2F2EA0000100D4A1B2 /* NativeGlassView.swift in Sources */,
+				7A1E5C312EA0000100D4A1B2 /* ReservedRegionsPlugin.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

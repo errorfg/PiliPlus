@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:PiliPlus/common/widgets/button/icon_button.dart';
 import 'package:PiliPlus/common/widgets/loading_widget/loading_widget.dart';
+import 'package:PiliPlus/common/widgets/occlusion_avoidance.dart';
 import 'package:PiliPlus/common/widgets/pair.dart';
 import 'package:PiliPlus/common/widgets/scaffold/simple_scaffold.dart';
 import 'package:PiliPlus/common/widgets/view_insets_safe_area.dart';
@@ -289,6 +290,7 @@ class _PostPanelState extends State<PostPanel>
               icon: const Icon(Icons.close),
             ),
             const SizedBox(width: 16),
+            const OcclusionGap(),
           ],
         ),
       ),
@@ -348,7 +350,7 @@ class _PostPanelState extends State<PostPanel>
       padding: EdgeInsets.only(bottom: 88 + bottom),
       itemCount: list.length,
       itemBuilder: (context, index) {
-        return _buildItem(index, list[index]);
+        return AvoidOcclusion(child: _buildItem(index, list[index]));
       },
     );
   }

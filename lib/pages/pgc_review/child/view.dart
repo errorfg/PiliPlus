@@ -7,6 +7,7 @@ import 'package:PiliPlus/common/widgets/dialog/simple_dialog_option.dart';
 import 'package:PiliPlus/common/widgets/flutter/refresh_indicator.dart';
 import 'package:PiliPlus/common/widgets/image/network_img_layer.dart';
 import 'package:PiliPlus/common/widgets/loading_widget/http_error.dart';
+import 'package:PiliPlus/common/widgets/occlusion_avoidance.dart';
 import 'package:PiliPlus/common/widgets/selection_text.dart';
 import 'package:PiliPlus/common/widgets/sliver/sliver_floating_header.dart';
 import 'package:PiliPlus/http/loading_state.dart';
@@ -111,7 +112,9 @@ class _PgcReviewChildPageState extends State<PgcReviewChildPage>
               if (index == response.length - 1) {
                 _controller.onLoadMore();
               }
-              return _itemWidget(theme, index, response[index]);
+              return AvoidOcclusion(
+                child: _itemWidget(theme, index, response[index]),
+              );
             },
             itemCount: response.length,
             separatorBuilder: (context, index) => divider,

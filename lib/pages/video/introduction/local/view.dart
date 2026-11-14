@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:PiliPlus/common/style.dart';
 import 'package:PiliPlus/common/widgets/badge.dart';
 import 'package:PiliPlus/common/widgets/image/network_img_layer.dart';
+import 'package:PiliPlus/common/widgets/occlusion_avoidance.dart';
 import 'package:PiliPlus/models_new/download/bili_download_entry_info.dart';
 import 'package:PiliPlus/pages/video/introduction/local/controller.dart';
 import 'package:PiliPlus/utils/duration_utils.dart';
@@ -38,7 +39,9 @@ class _LocalIntroPanelState extends State<LocalIntroPanel>
         itemCount: _controller.list.length,
         itemBuilder: (context, index) {
           final item = _controller.list[index];
-          return _buildItem(theme, currIndex == index, index, item);
+          return AvoidOcclusion(
+            child: _buildItem(theme, currIndex == index, index, item),
+          );
         },
         itemExtent: 112,
       );

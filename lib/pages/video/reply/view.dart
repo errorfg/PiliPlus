@@ -3,6 +3,7 @@ import 'package:PiliPlus/common/sliver_single_child_delegate.dart';
 import 'package:PiliPlus/common/style.dart';
 import 'package:PiliPlus/common/widgets/flutter/refresh_indicator.dart';
 import 'package:PiliPlus/common/widgets/loading_widget/http_error.dart';
+import 'package:PiliPlus/common/widgets/occlusion_avoidance.dart';
 import 'package:PiliPlus/common/widgets/scaffold/simple_scaffold.dart';
 import 'package:PiliPlus/common/widgets/sliver/sliver_floating_header.dart';
 import 'package:PiliPlus/grpc/bilibili/main/community/reply/v1.pb.dart'
@@ -166,7 +167,9 @@ class _VideoReplyPanelState extends State<VideoReplyPanel>
             itemBuilder: (context, index) {
               if (hasVote) {
                 if (index == 0) {
-                  return buildVoteCard(context, colorScheme, voteCard);
+                  return AvoidOcclusion(
+                    child: buildVoteCard(context, colorScheme, voteCard),
+                  );
                 } else {
                   index--;
                 }
@@ -210,7 +213,9 @@ class _VideoReplyPanelState extends State<VideoReplyPanel>
           return SliverMainAxisGroup(
             slivers: [
               SliverToBoxAdapter(
-                child: buildVoteCard(context, colorScheme, voteCard),
+                child: AvoidOcclusion(
+                  child: buildVoteCard(context, colorScheme, voteCard),
+                ),
               ),
               child,
             ],

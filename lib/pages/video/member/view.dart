@@ -6,6 +6,7 @@ import 'package:PiliPlus/common/widgets/flutter/refresh_indicator.dart'
 import 'package:PiliPlus/common/widgets/image/network_img_layer.dart';
 import 'package:PiliPlus/common/widgets/loading_widget/http_error.dart';
 import 'package:PiliPlus/common/widgets/loading_widget/loading_widget.dart';
+import 'package:PiliPlus/common/widgets/occlusion_avoidance.dart';
 import 'package:PiliPlus/common/widgets/refresh_indicator.dart';
 import 'package:PiliPlus/common/widgets/scroll_physics.dart'
     show platformAlwaysClampingPhysics;
@@ -170,14 +171,17 @@ class _HorizontalMemberPageState extends State<HorizontalMemberPage> {
   Widget _buildHeader() {
     return SliverPinnedHeader(
       backgroundColor: colorScheme.surface,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 4, 6, 4),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            ?_buildCount(),
-            _buildSortBtn(),
-          ],
+      child: AvoidOcclusion(
+        pinned: true,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 4, 6, 4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ?_buildCount(),
+              _buildSortBtn(),
+            ],
+          ),
         ),
       ),
     );
@@ -232,7 +236,7 @@ class _HorizontalMemberPageState extends State<HorizontalMemberPage> {
                 slivers: [
                   _buildHeader(),
                   SliverFixedExtentList.builder(
-                    itemBuilder: (context, index) {
+                    itemBuilder: AvoidOcclusion.rows((context, index) {
                       if (index == response.length - 1 && _controller.hasNext) {
                         _controller.onLoadMore();
                       }
@@ -254,7 +258,7 @@ class _HorizontalMemberPageState extends State<HorizontalMemberPage> {
                           },
                         ),
                       );
-                    },
+                    }),
                     itemCount: response.length,
                     itemExtent: 112,
                   ),
@@ -269,14 +273,16 @@ class _HorizontalMemberPageState extends State<HorizontalMemberPage> {
   }
 
   Widget _buildUserInfo(MemberInfoModel memberInfoModel) {
-    return Padding(
-      padding: const .only(left: 16, top: 10, right: 16, bottom: 3),
-      child: Row(
-        spacing: 10,
-        children: [
-          _buildAvatar(memberInfoModel.face!),
-          Expanded(child: _buildInfo(memberInfoModel)),
-        ],
+    return AvoidOcclusion(
+      child: Padding(
+        padding: const .only(left: 16, top: 10, right: 16, bottom: 3),
+        child: Row(
+          spacing: 10,
+          children: [
+            _buildAvatar(memberInfoModel.face!),
+            Expanded(child: _buildInfo(memberInfoModel)),
+          ],
+        ),
       ),
     );
   }

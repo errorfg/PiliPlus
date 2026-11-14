@@ -11,6 +11,7 @@ import 'package:PiliPlus/common/widgets/emote_tooltip.dart';
 import 'package:PiliPlus/common/widgets/gesture/tap_gesture_recognizer.dart';
 import 'package:PiliPlus/common/widgets/image/network_img_layer.dart';
 import 'package:PiliPlus/common/widgets/image_grid/image_grid_view.dart';
+import 'package:PiliPlus/common/widgets/occlusion_avoidance.dart';
 import 'package:PiliPlus/common/widgets/pendant_avatar.dart';
 import 'package:PiliPlus/common/widgets/text_ellipsis/text_ellipsis.dart';
 import 'package:PiliPlus/common/widgets/text_more/text_more.dart';
@@ -159,21 +160,39 @@ Widget _replyContentLayout({
   return Column(
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
+    // Each part on its own: of a long comment at the top of the list, only
+    // the parts beside the status bar are narrower.
     children: [
-      header,
+      AvoidOcclusion(slot: 0, child: header),
       const SizedBox(height: 10),
-      if (voteOption != null) Padding(padding: padding, child: voteOption),
-      Padding(padding: padding, child: message),
+      if (voteOption != null)
+        AvoidOcclusion(
+          slot: 1,
+          child: Padding(padding: padding, child: voteOption),
+        ),
+      AvoidOcclusion(
+        slot: 2,
+        child: Padding(padding: padding, child: message),
+      ),
       if (pictures != null) ...[
-        Padding(padding: padding, child: pictures),
+        AvoidOcclusion(
+          slot: 3,
+          child: Padding(padding: padding, child: pictures),
+        ),
         const SizedBox(height: 4),
       ],
       if (actions != null) ...[
         const SizedBox(height: 4),
-        actions,
+        AvoidOcclusion(slot: 4, child: actions),
       ],
       if (subReplies != null)
-        Padding(padding: const .only(top: 5, bottom: 12), child: subReplies),
+        AvoidOcclusion(
+          slot: 5,
+          child: Padding(
+            padding: const .only(top: 5, bottom: 12),
+            child: subReplies,
+          ),
+        ),
     ],
   );
 }

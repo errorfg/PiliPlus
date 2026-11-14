@@ -1,5 +1,6 @@
 import 'dart:async' show Completer;
 
+import 'package:PiliPlus/common/widgets/occlusion_avoidance.dart';
 import 'package:PiliPlus/common/widgets/scaffold/bottom_sheet.dart';
 import 'package:PiliPlus/common/widgets/scaffold/bottom_sheet_layout.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -197,15 +198,20 @@ class _StandardBottomSheetState
     extends StandardBottomSheetState<_StandardBottomSheet> {
   @override
   Widget build(BuildContext context) {
-    final child = BottomSheet_(
-      animationController: widget.animationController,
-      enableDrag: widget.enableDrag,
-      onDragStart: handleDragStart,
-      onDragEnd: handleDragEnd,
-      onClosing: widget.onClosing!,
-      builder: widget.builder,
-      constraints: widget.constraints,
-      dragHeight: widget.dragHeight,
+    // The sheet grows from the bottom of the scaffold; what it holds is
+    // measured where it will be once the sheet is open.
+    final child = OcclusionRestAnchor(
+      frame: () => MiniScaffold.maybeOf(context)?.context.findRenderObject(),
+      child: BottomSheet_(
+        animationController: widget.animationController,
+        enableDrag: widget.enableDrag,
+        onDragStart: handleDragStart,
+        onDragEnd: handleDragEnd,
+        onClosing: widget.onClosing!,
+        builder: widget.builder,
+        constraints: widget.constraints,
+        dragHeight: widget.dragHeight,
+      ),
     );
     if (widget.enableDrag) {
       return AnimatedBuilder(
